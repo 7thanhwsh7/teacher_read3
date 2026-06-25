@@ -1,0 +1,2992 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G.EDU — Teacher Reading Correction Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --cream:        #fdfcfb;
+  --cream-deep:   #f5f2ed;
+  --cream-border: #e8e2d9;
+  --ink:          #1a1714;
+  --ink-soft:     #4a4540;
+  --ink-muted:    #8a8178;
+  --gold:         #D4AF37;
+  --gold-light:   #F0D060;
+  --gold-pale:    #fdf6dc;
+  --gold-border:  #e8c84a;
+  --navy:         #1b2a4a;
+  --navy-mid:     #253a63;
+  --highlight:    #fff176;
+  --highlight-bg: #fffde7;
+  --success:      #2e7d32;
+  --success-bg:   #f1f8e9;
+  --evidence-bg:  #e8f4fd;
+  --evidence-border: #90caf9;
+  --shadow-sm:    0 1px 3px rgba(26,23,20,0.08);
+  --shadow-md:    0 4px 16px rgba(26,23,20,0.10);
+  --shadow-lg:    0 8px 32px rgba(26,23,20,0.13);
+  --radius-sm:    6px;
+  --radius-md:    12px;
+  --radius-lg:    18px;
+  --sidebar-w:    72px;
+  --font-body:    'Be Vietnam Pro', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════ */
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid rgba(212,175,55,0.25);
+  flex-shrink: 0;
+}
+
+.logo-mark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+
+.logo-sub {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(212,175,55,0.6);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.logo-test-name {
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: rgba(212,175,55,0.12);
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--gold-light);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.sidebar-section {
+  padding: 14px 16px 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 8px;
+}
+
+/* Passage selector */
+.passage-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px 0;
+  flex-shrink: 0;
+}
+
+.passage-tab {
+  flex: 1;
+  padding: 7px 0;
+  border: 1px solid rgba(212,175,55,0.3);
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+
+.passage-tab:hover {
+  background: rgba(212,175,55,0.12);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.5);
+}
+
+.passage-tab.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(212,175,55,0.35);
+}
+
+/* Question map */
+.q-map-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 16px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,175,55,0.2) transparent;
+}
+
+.q-map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.q-chip {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.q-chip:hover {
+  background: rgba(212,175,55,0.15);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.3);
+}
+
+.q-chip.answered {
+  background: rgba(212,175,55,0.18);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.35);
+}
+
+.q-chip.checked {
+  background: rgba(46,125,50,0.25);
+  color: #a5d6a7;
+  border-color: rgba(46,125,50,0.4);
+}
+
+/* Sidebar actions */
+.sidebar-actions {
+  padding: 12px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(212,175,55,0.15);
+}
+
+.btn-sidebar {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  border: 1px solid;
+}
+
+.btn-show-keys {
+  background: var(--gold);
+  color: var(--navy);
+  border-color: var(--gold);
+}
+
+.btn-show-keys:hover {
+  background: var(--gold-light);
+  box-shadow: 0 3px 12px rgba(212,175,55,0.4);
+}
+
+.btn-clear-hl {
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.btn-clear-hl:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.35);
+}
+
+/* ── MAIN CONTENT ── */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Top bar */
+#topbar {
+  height: 52px;
+  min-height: 52px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--cream-border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--navy);
+  font-style: italic;
+}
+
+.topbar-meta {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.topbar-passage-badge {
+  margin-left: auto;
+  background: var(--gold-pale);
+  border: 1px solid var(--gold-border);
+  color: #8a6b00;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+/* Split pane */
+#split-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Left: Passage */
+#passage-pane {
+  width: 50%;
+  min-width: 280px;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--cream);
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-border) transparent;
+}
+
+/* Splitter */
+#splitter {
+  width: 5px;
+  background: var(--cream-border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+#splitter:hover, #splitter.dragging {
+  background: var(--gold);
+}
+
+#splitter::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 40px;
+  background: rgba(212,175,55,0.5);
+  border-radius: 4px;
+}
+
+/* Right: Questions */
+#questions-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--cream-deep);
+  min-width: 280px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-border) transparent;
+}
+
+/* ═══════════════════════════════════════════
+   PASSAGE STYLES
+═══════════════════════════════════════════ */
+.passage-header {
+  margin-bottom: 20px;
+}
+
+.passage-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.passage-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.passage-source {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.passage-divider {
+  width: 48px;
+  height: 2px;
+  background: var(--gold);
+  margin: 14px 0;
+  border-radius: 2px;
+}
+
+.passage-body {
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--ink);
+  user-select: text;
+}
+
+.passage-body p {
+  margin-bottom: 14px;
+}
+
+.passage-body .para-label {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 12px;
+}
+
+mark.hl-yellow {
+  background: var(--highlight);
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+mark.hl-yellow:hover {
+  background: #ffee33;
+  text-decoration: line-through;
+  text-decoration-color: rgba(0,0,0,0.3);
+}
+
+/* Highlight toolbar */
+#hl-toolbar {
+  position: fixed;
+  display: none;
+  background: var(--navy);
+  border-radius: 20px;
+  padding: 5px 8px;
+  gap: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28);
+  z-index: 2000;
+  align-items: center;
+  pointer-events: auto;
+  transform: translateX(-50%);
+}
+
+#hl-toolbar.visible {
+  display: flex;
+}
+
+/* small arrow under toolbar */
+#hl-toolbar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--navy);
+}
+
+.hl-btn {
+  padding: 5px 14px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.hl-btn:hover { background: var(--gold-light); }
+
+/* ═══════════════════════════════════════════
+   QUESTION GROUP STYLES
+═══════════════════════════════════════════ */
+.q-group {
+  margin-bottom: 28px;
+}
+
+.q-group-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.q-group-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.q-group-instruction {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  background: rgba(212,175,55,0.07);
+  border-left: 3px solid var(--gold);
+  padding: 8px 12px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 14px;
+}
+
+/* Individual question card */
+.q-card {
+  background: var(--cream);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+
+.q-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.q-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.q-num-badge {
+  min-width: 26px;
+  height: 26px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.q-content {
+  flex: 1;
+}
+
+.q-stem {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* MCQ options */
+.q-options {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.q-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 12px;
+}
+
+.q-option:hover {
+  background: var(--gold-pale);
+  border-color: var(--gold-border);
+}
+
+.q-option.selected {
+  background: var(--gold-pale);
+  border-color: var(--gold);
+}
+
+.opt-letter {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 1px solid var(--cream-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+
+.q-option.selected .opt-letter {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: white;
+}
+
+/* ── DROPDOWN SELECT (T/F/NG & Y/N/NG) ── */
+.teacher-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.teacher-select {
+  flex: 1;
+  padding: 7px 10px;
+  background: white;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8178' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  transition: border 0.15s;
+}
+
+.teacher-select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+}
+
+.teacher-select.correct {
+  border-color: var(--success);
+  background-color: var(--success-bg);
+}
+
+.teacher-select.wrong {
+  border-color: #e53935;
+  background-color: #ffebee;
+}
+
+/* Teacher answer input */
+.teacher-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.teacher-input {
+  flex: 1;
+  padding: 7px 12px;
+  background: white;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  transition: border 0.15s;
+}
+
+.teacher-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+}
+
+.btn-check {
+  padding: 7px 16px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.btn-check:hover {
+  background: var(--navy-mid);
+  box-shadow: 0 3px 10px rgba(27,42,74,0.3);
+}
+
+/* ── INLINE TABLE QUESTION GROUP ── */
+.q-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 0;
+}
+
+.q-inline-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  background: white;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.q-inline-table .tbl-title-row th {
+  background: var(--navy);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 12px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.q-inline-table thead tr:last-child th {
+  background: var(--navy-mid);
+  color: var(--gold-light);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 10px;
+  text-align: left;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--gold);
+}
+
+.q-inline-table tbody tr:nth-child(odd) { background: #fff; }
+.q-inline-table tbody tr:nth-child(even) { background: var(--cream-deep); }
+
+.q-inline-table td {
+  border: 1px solid var(--cream-border);
+  padding: 8px 10px;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+/* Cell containing an input */
+.tbl-input-cell {
+  min-width: 130px;
+}
+
+.tbl-q-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tbl-q-num {
+  min-width: 20px;
+  height: 20px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tbl-input {
+  flex: 1;
+  min-width: 80px;
+  padding: 4px 8px;
+  border: 1px solid var(--cream-border);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--ink);
+  background: white;
+  outline: none;
+  transition: border 0.15s;
+}
+
+.tbl-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212,175,55,0.15);
+}
+
+.tbl-input.correct {
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+
+.tbl-input.wrong {
+  border-color: #e53935;
+  background: #ffebee;
+}
+
+.tbl-check-btn {
+  padding: 3px 8px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.tbl-check-btn:hover { background: var(--navy-mid); }
+
+/* Single shared correction slot below table */
+.tbl-correction-slot {
+  border-top: 2px solid var(--cream-border);
+  min-height: 0;
+}
+
+.tbl-correction-slot:empty {
+  border-top: none;
+}
+
+/* Correction panels below table */
+.tbl-corrections-wrap {
+  margin-top: 0;
+  border-top: 2px solid var(--cream-border);
+}
+
+.tbl-correction-item {
+  display: none;
+  padding: 10px 14px;
+  border-bottom: 1px dashed var(--cream-border);
+  gap: 8px;
+  flex-direction: column;
+}
+
+.tbl-correction-item.open { display: flex; }
+
+.tbl-correction-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.tbl-correction-header .tbl-q-num {
+  min-width: 22px;
+  height: 22px;
+  font-size: 10px;
+}
+
+/* Correction panel */
+.correction-panel {
+  display: none;
+  margin-top: 10px;
+  border-top: 1px dashed var(--cream-border);
+  padding-top: 10px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.correction-panel.open { display: flex; }
+
+.correct-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.correct-row.key-row {
+  background: var(--success-bg);
+  border: 1px solid #c8e6c9;
+}
+
+.correct-row.explain-row {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+}
+
+.correct-row.evidence-row {
+  background: var(--evidence-bg);
+  border: 1px solid var(--evidence-border);
+  padding: 0;
+  overflow: hidden;
+}
+
+.evidence-row-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.evidence-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px 6px;
+}
+
+.btn-view-evidence {
+  width: 100%;
+  padding: 7px 12px;
+  background: rgba(144,202,249,0.18);
+  border: none;
+  border-top: 1px solid var(--evidence-border);
+  color: #1565c0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.btn-view-evidence:hover {
+  background: rgba(144,202,249,0.35);
+  color: #0d47a1;
+}
+
+.btn-view-evidence.active {
+  background: #1565c0;
+  color: white;
+}
+
+/* Flash animation for evidence in passage */
+@keyframes evidenceFlash {
+  0%   { background: #ffeb3b; box-shadow: 0 0 0 3px #ffeb3b; }
+  30%  { background: #fff176; box-shadow: 0 0 0 5px rgba(255,235,59,0.5); }
+  70%  { background: #fff9c4; box-shadow: 0 0 0 3px rgba(255,235,59,0.2); }
+  100% { background: #fff59d; box-shadow: none; }
+}
+
+.evidence-flash {
+  animation: evidenceFlash 2s ease-out forwards;
+  border-radius: 3px;
+}
+
+.cr-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cr-label {
+  font-weight: 700;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.cr-content {
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.cr-content strong { color: var(--ink); }
+
+/* Key highlight in evidence */
+.evidence-keyword {
+  background: var(--highlight);
+  border-radius: 2px;
+  padding: 0 2px;
+  font-weight: 600;
+}
+
+/* Show all keys panel */
+.all-keys-panel {
+  display: none;
+  position: fixed;
+  top: 52px;
+  right: 0;
+  width: 320px;
+  height: calc(100vh - 52px);
+  background: white;
+  border-left: 1px solid var(--cream-border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  z-index: 100;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.all-keys-panel.open { display: block; }
+
+.all-keys-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gold);
+}
+
+.all-keys-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.btn-close-keys {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--cream-border);
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--ink-muted);
+  transition: all 0.15s;
+}
+
+.btn-close-keys:hover {
+  background: var(--cream-deep);
+  color: var(--ink);
+}
+
+.key-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.key-table tr {
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.key-table tr:last-child { border-bottom: none; }
+
+.key-table td {
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.key-table .kt-num {
+  width: 36px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.key-table .kt-key {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.key-table .kt-type {
+  font-size: 10px;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.key-table tr:nth-child(even) td { background: var(--cream-deep); }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--cream-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c8bfb0; }
+
+/* ── SIDEBAR VIEWS ── */
+#sidebar-view-questions {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#sidebar-view-questions.hidden { display: none; }
+
+#sidebar-view-report {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  gap: 10px;
+  min-height: 0;
+}
+
+#sidebar-view-report.visible { display: flex; }
+
+#report-content {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#report-content.visible { display: flex; }
+
+/* ── SIDEBAR NAV TABS ── */
+.sidebar-nav {
+  display: flex;
+  gap: 0;
+  padding: 10px 14px 0;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.snav-tab {
+  flex: 1;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255,255,255,0.4);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.snav-tab:hover { color: rgba(255,255,255,0.75); }
+
+.snav-tab.active {
+  color: var(--gold-light);
+  border-bottom-color: var(--gold);
+}
+
+/* ── REPORT (sidebar view) ── */
+#sidebar-view-report {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 12px;
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.report-hint-icon { font-size: 28px; }
+
+.report-group-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.report-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.06);
+}
+
+.report-group-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.05em;
+}
+
+.report-group-score {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.report-group-score.good  { background: rgba(76,175,80,0.25); color: #a5d6a7; }
+.report-group-score.mid   { background: rgba(255,193,7,0.2);  color: #fff176; }
+.report-group-score.bad   { background: rgba(244,67,54,0.2);  color: #ef9a9a; }
+
+.report-q-list {
+  padding: 6px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-q-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+}
+
+.rq-num {
+  width: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+}
+
+.rq-status { font-size: 12px; }
+
+.rq-diag {
+  flex: 1;
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  font-style: italic;
+}
+
+.report-summary-box {
+  background: rgba(212,175,55,0.1);
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-top: 4px;
+}
+
+.report-summary-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.report-focus-item {
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  line-height: 1.4;
+}
+
+.report-focus-item:last-child { border-bottom: none; }
+
+.report-focus-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.btn-export-report {
+  width: 100%;
+  padding: 9px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.btn-export-report:hover { background: var(--gold-light); }
+
+/* ── QUESTION TYPE BADGE (clickable) ── */
+.q-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--navy);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--navy);
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.q-type-badge:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.q-type-badge .tip-icon {
+  font-size: 12px;
+  font-style: normal;
+  opacity: 0.6;
+}
+
+/* ── TIPS PANEL (slide-in từ phải) ── */
+.tips-panel {
+  position: fixed;
+  top: 52px;
+  right: -420px;
+  width: 400px;
+  height: calc(100vh - 52px);
+  background: white;
+  border-left: 1px solid var(--cream-border);
+  box-shadow: -6px 0 30px rgba(0,0,0,0.12);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+
+.tips-panel.open { right: 0; }
+
+.tips-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 2px solid var(--gold);
+  flex-shrink: 0;
+  background: var(--navy);
+}
+
+.tips-panel-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(212,175,55,0.7);
+  margin-bottom: 4px;
+}
+
+.tips-panel-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: white;
+  font-style: italic;
+}
+
+.tips-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Tips content blocks */
+.tips-section {
+  margin-bottom: 20px;
+}
+
+.tips-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.tips-overview {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  background: var(--cream-deep);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-left: 3px solid var(--navy);
+}
+
+.tips-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+
+.tips-item-num {
+  width: 22px;
+  height: 22px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tips-item-text {
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.tips-item-text strong { color: var(--navy); }
+
+.tips-trap {
+  display: flex;
+  gap: 8px;
+  background: #fff3e0;
+  border: 1px solid #ffcc02;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #7b4a00;
+  line-height: 1.5;
+  align-items: flex-start;
+}
+
+.tips-trap-icon { flex-shrink: 0; font-size: 14px; }
+
+.tips-band {
+  display: flex;
+  gap: 8px;
+  background: linear-gradient(135deg, #f3e5f5, #e8f5e9);
+  border: 1px solid #ce93d8;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.5;
+  align-items: flex-start;
+}
+
+.tips-band-icon { flex-shrink: 0; font-size: 14px; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-muted);
+}
+
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.empty-state-sub { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Highlight toolbar (floating) -->
+<div id="hl-toolbar">
+  <button class="hl-btn" onclick="applyHighlight()">✏️ Highlight</button>
+</div>
+
+<!-- All Keys Panel (slide-in) -->
+<div id="all-keys-panel" class="all-keys-panel">
+  <div class="all-keys-header">
+    <span class="all-keys-title">Answer Key — All 40 Qs</span>
+    <button class="btn-close-keys" onclick="toggleAllKeys(false)">✕</button>
+  </div>
+  <table class="key-table" id="key-table-body"></table>
+</div>
+
+<!-- Tips Panel (slide-in từ phải, click vào question type badge) -->
+<div id="tips-panel" class="tips-panel">
+  <div class="tips-panel-header">
+    <div>
+      <div class="tips-panel-eyebrow">Hướng dẫn dạng bài</div>
+      <div class="tips-panel-title" id="tips-panel-title">—</div>
+    </div>
+    <button class="btn-close-keys" onclick="closeTipsPanel()">✕</button>
+  </div>
+  <div id="tips-panel-body" class="tips-panel-body"></div>
+</div>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">G.EDU</div>
+      <div class="logo-sub">Teacher Edition · Reading</div>
+      <div class="logo-test-name" id="sidebar-test-name">—</div>
+    </div>
+
+    <!-- Sidebar Nav -->
+    <div class="sidebar-nav">
+      <button class="snav-tab active" id="snav-questions" onclick="switchSidebarView('questions')">📋 Câu hỏi</button>
+      <button class="snav-tab" id="snav-report" onclick="switchSidebarView('report')">📊 Báo cáo</button>
+    </div>
+
+    <!-- VIEW: Questions -->
+    <div id="sidebar-view-questions">
+    <!-- Passage Tabs -->
+    <div class="passage-tabs">
+      <button class="passage-tab active" onclick="switchPassage(0)" id="tab-0">P1</button>
+      <button class="passage-tab" onclick="switchPassage(1)" id="tab-1">P2</button>
+      <button class="passage-tab" onclick="switchPassage(2)" id="tab-2">P3</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Question Map</div>
+    </div>
+    <div class="q-map-wrap">
+      <div class="q-map-grid" id="q-map"></div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="btn-sidebar btn-show-keys" onclick="toggleAllKeys(true)">📋 Show All Keys</button>
+      <button class="btn-sidebar btn-clear-hl" onclick="clearAllHighlights()">🧹 Clear Highlights</button>
+    </div>
+    </div><!-- end sidebar-view-questions -->
+
+    <!-- VIEW: Báo cáo -->
+    <div id="sidebar-view-report">
+      <div class="report-hint" id="report-hint">
+        <div class="report-hint-icon">📝</div>
+        <div>Check các câu hỏi bên phải để tạo báo cáo phân tích lỗi cho học sinh.</div>
+      </div>
+      <div id="report-content"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- Topbar -->
+    <div id="topbar">
+      <span class="topbar-title">Reading Correction Tool</span>
+      <span class="topbar-meta" id="topbar-meta">IELTS Academic — Reading Test 3</span>
+      <span class="topbar-passage-badge" id="passage-badge">Passage 1</span>
+    </div>
+
+    <!-- Split Container -->
+    <div id="split-container">
+      <!-- Left: Passage -->
+      <div id="passage-pane">
+        <div id="passage-content">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Splitter -->
+      <div id="splitter"></div>
+
+      <!-- Right: Questions -->
+      <div id="questions-pane">
+        <div id="questions-content">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   TEACHER_DATA — JSON TEMPLATE
+   Điền dữ liệu vào đây để tạo bài test. Không sửa code bên dưới.
+   ───────────────────────────────────────────────────────────────
+   SCHEMA:
+   {
+     meta: {
+       title: string,        // Tên bộ đề, hiển thị ở topbar
+       testName: string,     // Tên test cụ thể, hiển thị ở sidebar (vd: "Reading Test 3")
+       totalQuestions: number // Tổng số câu (thường 40)
+     },
+     passages: [
+       {
+         id: number,         // 0, 1, 2 (tương ứng P1, P2, P3)
+         title: string,      // Tiêu đề bài đọc
+         source: string,     // Nguồn bài đọc (vd: "Adapted from Nature, 2023")
+         qRange: [start, end], // Phạm vi câu hỏi (vd: [1, 13])
+         paragraphs: [
+           {
+             label: string,  // Nhãn đoạn: "A", "B", "C"...
+             text: string    // Nội dung đoạn văn
+           }
+         ]
+       }
+     ],
+     questions: [
+       {
+         passageId: number,  // 0, 1, hoặc 2
+         groupId: string,    // ID nhóm, vd: "P1G1"
+         type: string,       // Loại câu: "TRUE/FALSE/NOT GIVEN" | "Multiple Choice" |
+                             //   "Short Answer Questions" | "Matching Headings" |
+                             //   "Matching Information" | "Summary Completion"
+         instruction: string, // Hướng dẫn làm bài (tiếng Anh, như đề IELTS)
+         items: [
+           {
+             id: number,     // Số thứ tự câu (1–40, liên tục)
+             stem: string,   // Nội dung câu hỏi / câu phát biểu
+             options: [      // CHỈ dùng cho Multiple Choice
+               "A. ...",     // Format: "A. nội dung"
+               "B. ...",
+               "C. ...",
+               "D. ..."
+             ],
+             key: string,    // Đáp án đúng. MCQ: "A"/"B"/"C"/"D". T/F/NG: "TRUE"/"FALSE"/"NOT GIVEN"
+                             // Short Answer: từ/cụm từ trích từ bài. Nhiều đáp án: "ans1 / ans2"
+             explanation: string, // Giải thích bằng tiếng Việt
+             evidence: string     // Câu/cụm từ trích nguyên văn từ bài làm evidence
+           }
+         ]
+       }
+     ]
+   }
+═══════════════════════════════════════════════════════════════ */
+const TEACHER_DATA = {
+  "meta": { "title": "IELTS Academic Reading", "testName": "Reading Test 3", "totalQuestions": 40 },
+  "passages": [
+    {
+      "id": 0,
+      "title": "THE DEVELOPMENT OF PLASTICS",
+      "source": "Adapted from history of chemistry materials",
+      "qRange": [1, 13],
+      "paragraphs": [
+        { "label": "1", "text": "The first plastics were developed as a substitute for natural rubber. Chemically, rubber is a polymer-a compound containing large molecules that are formed by the bonding of many smaller, simpler units, repeated over and over again. The same bonding principle-polymerization-is the basis of the creation of a huge range of plastics by the chemical industry." },
+        { "label": "2", "text": "The first plastic was developed as a result of a competition in the USA. In the 1860s,$10,000 was offered to anybody who could replace ivory-supplies of which were declining-with something equally good as a material for making billiard balls. The prize was won by John Wesley Hyatt, with a material called celluloid. Celluloid was made by dissolving cellulose, a carbohydrate obtained from plants, in a solution of camphor dissolved in ethanol. This new material rapidly found other applications in the manufacture of everyday products such as knife handles and detachable collars and cuffs. But perhaps the best-known celluloid product was photographic film, without which the film industry could never have taken off at the end of the 19th century." },
+        { "label": "3", "text": "Celluloid can be repeatedly softened and reshaped by heat, and is known as a thermoplastic. In 1907, Leo Baekeland (1863-1944), a Belgian chemist working in the USA, invented a different kind of plastic, by causing phenol and formaldehyde to react together. Baekeland called it Bakelite, and it was the first of the thermosets-plastic that can be cast and moulded while hot, but cannot be softened by heat and reshaped once they have set. Bakelite was a good insulator, and was resistant to water and acid. With these properties it was soon being used in the manufacture of electrical switches as well as a variety of domestic items." },
+        { "label": "4", "text": "As the century went on, the range of newly developed plastic increased. Chemists began looking for other small molecules that could be strung together to make polymers. In the 1930s, chemists in Britain discovered that the gas ethylene would polymerize under heat and pressure to form a thermoplastic they called polythene. Polypropylene followed in the 1950s. Both are used to make bottles, pipes and plastic bags. A small change in the starting material-replacing a hydrogen atom in ethylene with a chlorine atom-produced rigid PVC (polyvinyl chloride), a fireproof plastic suitable for drains and gutters. By adding certain chemicals, a soft form of PVC can be produced, suitable as a substitute for rubber in items such as waterproof clothing. A closely related plastic is Teflon or PTFE (polytetrafluoroethylene). It produces very little friction, making it ideal for products such as non-stick frying pans." },
+        { "label": "5", "text": "Polystyrene, a hard, clear material like glass, was developed during the 1930s in Germany, and its applications included food containers and toys. Expanded polystyrene is rigid and is widely used in packaging and insulation. Polyurethane, developed in the same country, was commonly produced as a foam which was very useful in the production of insulating materials." },
+        { "label": "6", "text": "In the 1930s, the first of the man-made fibres was created-nylon. Its inventor was a chemist called Wallace Carothers (1896-1937), who worked for the Du Pont company in the USA. He found that under the right conditions two particular chemicals would form a polymer that could be pumped out through holes and then stretched to form long glossy threads that could be woven like silk. Its first use was to make parachutes for the US armed forces in World War II. In the postwar years, it completely replaced silk in the manufacture of stockings." },
+        { "label": "7", "text": "Many other synthetic fibres joined nylon, including Orion, Acrilan, and Terylene. Today most garments are made of a blend of natural fibres, such as cotton and wool, and man-made fibres that make fabrics easier to look after." },
+        { "label": "8", "text": "Despite its enormous usefulness, plastic has its drawbacks. In fact one its great strengths-its indestructibility- is its greatest disadvantage. Beaches all over the world, even on the remotest island, are littered with plastic bottles that nothing can destroy. Nor is it very easy to recycle plastics, as different types of plastics, as different types of plastic are often found in the same items and call for different treatments." },
+        { "label": "9", "text": "Plastics can be made biodegradable by incorporating into their structure a material such as starch, which is attacked by bacteria and causes the plastic to fall apart. Other materials can be incorporated that gradually decay in sunlight-although bottles made of such materials have to be stored in the dark, to ensure they do not disintegrate before they have been used." }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "LEAN PRODUCTION INNOVATION – IN MANUFACTURING SYSTEMS",
+      "source": "Adapted from Business Management Journal",
+      "qRange": [14, 26],
+      "paragraphs": [
+        { "label": "14", "text": "After the First World War, car makers Henry Ford and Arthur Sloan of General Motors moved world manufacturing from centuries of craft production into the age of mass production. Largely as a result of this, the United States soon dominated the world economy. After the Second World War, and approximately a hundred years after Japan opened up to the modern world, Eiji Toyoda and Taiichi Ohno pioneered the concept of lean production at the Toyota car company. And now, although superimposing the method on existing mass production systems causes pain and upheaval, manufacturers around the world are trying to embrace this innovative system." },
+        { "label": "15", "text": "Perhaps the best way to describe lean production is to compare it with the two other major manufacturing systems: craft production and mass production. The craft producer uses highly skilled workers and simple but flexible tools to make exactly what the customer asks for – one item at a time. A present day example of this method is the customised production of a few exotic sports cars. The concept of craft production remains very popular, but the problem with it is obvious. Goods produced by the craft method – as cars once exclusively were – cost too much for most of us to afford. So at the beginning of the twentieth century, mass production was developed as an alternative method. The mass producer uses narrowly skilled professionals to design products which are then made by unskilled or semi-skilled workers, using expensive, single-purpose machines. These churn out standardised products in very high volumes. Because the machinery costs so much, and is so intolerant of disruption, the mass producer keeps standard designs in production for as long as possible. The result is that the customer gets lower costs, but at the expense of variety, and by means of work methods which most employees find boring and dispiriting. By contrast, the lean production system combines the advantages of craft and mass production, while avoiding the high cost of the former and the rigidity of the latter. Towards this end, companies appoint teams of multi-skilled workers to all levels of the organisation , and use highly flexible and increasingly automated machines to produce goods in enormous volume and variety." },
+        { "label": "16", "text": "Lean production is so called because, compared with mass production, it uses less of everything – half the human effort in the factory, half the manufacturing space, half the investment in tools, and half the engineering hours to develop the new product. It also results in far fewer defects." },
+        { "label": "17", "text": "Perhaps the most striking contrast between mass and lean production systems lies in their production standards. Mass producers set a limited goal for themselves: 'good enough', which translates into an acceptable number of defects, a maximum acceptable number of inventories, and a narrow range of standardised products. Lean producers, on the other hand, are unwilling to compromise standards in any of these areas." },
+        { "label": "18", "text": "Although cost reduction is the primary objective of the lean production system, it must meet three other intermediate objectives in order to achieve this: quantity control, quality assurance and respect for humanity. Firstly, the system must be able to adapt to daily and monthly fluctuations in demand. Secondly, each separate process must supply only good units to the subsequent process. Thirdly, in as far as the system uses human resources to attain its cost objectives, respect for human needs must be cultivated. It should be emphasised that none of these three objectives can be achieved separately." },
+        { "label": "19", "text": "The continuous flow of lean manufacturing production relies on two practical mechanisms: just-in-time and autonomation. Just-in-time means, for example, that in the process of assembling the parts to build a car, components from the preceding process should arrive at the next part of the line at exactly the right time and in the correct quantities. If just-in-time is fully realised throughout the company, then superfluous inventories are completely eliminated from the factory, making stores or warehouses unnecessary. However, relying solely on a central planning approach to control schedules for all stages of the production process simultaneously is very difficult in the case of cars, which consist of thousands of parts. So the lean system looks at the production flow in reverse; in other words, employees go to the preceding process to withdraw the necessary quantity of units at the appropriate time. The preceding process must produce only sufficient quantities of units to replace those that have been withdrawn, and in turn withdraws the requisite number of components from the process that precedes it." },
+        { "label": "20", "text": "Autonomation is the automatic checking for abnormalities in the production process. In order to realise just-in-time perfectly, only units which are in perfect condition must be allowed to flow to the next process, and this flow must be regular and uninterrupted. In other words, quality control must coexist with just-in-time procedures throughout the system. Autonomation involves building in a mechanism to prevent the multiplication of defects in machines or product lines. For example, in Toyota factories almost all the machines have been fitted with stopping devices, and the concept of autonomation has been extended to manual production lines. If something abnormal happens there, the worker pushes a button to stop the whole line, and lights, which are hung so high in the factory that they are visible to everyone, indicate the position of the problem." }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "HOW DOES WATCHING SPORT INFLUENCE THE BRAIN?",
+      "source": "Adapted from Neuroscience Weekly",
+      "qRange": [27, 40],
+      "paragraphs": [
+        { "label": "A", "text": "During the epoch when the poet Homer unveiled his grand epic, the ancient Greeks initiated a festival where men contended in a race of roughly 200 metres. The victor would be rewarded with a symbolic olive branch. This event, known as the Olympics, has transcended its humble origins to embody the human quest for progress. The captivating nature of these games raises an intriguing question: what exactly draws us in as spectators? Is it the thrill of competition, the beauty of human movement, or something happening within our brains?" },
+        { "label": "B", "text": "In 1996, three Italian neuroscientists-Giacomo Rizzolatti, Leonardo Fogassi, and Vittorio Gallese conducted research on the premotor cortex of monkeys and made a groundbreaking discovery. They revealed a cluster of cells that act as a repository for motor actions, similar to 'grammar of movement'. These cellular networks represent the 'sentences' of full-body motions that our brains meticulously retain and refine. Take the art of swinging a golf club as an example. For those who only watch the Masters Tournament on television, playing golf may appear deceptively effortless. However, for novices, smoothly manoeuvring the asymmetrical metal club presents a nearly impossible challenge. This is because novices rely on conscious effort, utilising brain regions adjacent to the premotor cortex. Experts, by contrast, instinctively execute perfectly balanced movements, as their actions are deeply ingrained and intertwined with neurons in the premotor cortex. Their swing occurs with the serenity of a refined autopilot, requiring no conscious control. This neural distinction between novices and experts provides insight into how long-term training can physically reshape the brain." },
+        { "label": "C", "text": "These neurons in the premotor cortex not only help explain why some athletes seem to have exceptional skills, but they also exhibit a wondrous characteristic that prompted Rizzolatti, Fogassi, and Gallese to bestow upon them the exalted label of mirror neuron'. They point out that mirror neurons are activated when a primate performs a particular action, such as grasping or holding an object, or when it witnesses another individual performing a comparable action. Humans possess an even more intricate mirrorneuron system that reflects the external world in our brains, enabling us to internalise the behaviours of others. Nonetheless, these cells necessitate what scientists refer to as 'goal-orientated movements' to activate. If we stare at a photograph, a static image of a runner striding ahead, our mirror neurons remain utterly silent. It is solely when the runner is in action, be it in running, moving, or sprinting, that they are ignited. Movement, not stillness, is what speaks to our brains." },
+        { "label": "D", "text": "Electrophysiological studies have shown that when we observe a golfer or a runner in action, our own premotor cortex mirror neurons respond as if we were participating in the activity. This neural mirroring was initially identified in 1954 by French physiologists Gastaut and Bert, who noticed specific alpha and mu brain wave patterns in humans.\n\nThe mu signal plays a role in neural mirroring, remaining active during periods of bodily stillness but dissipating when we undertake active pursuits like playing a sport or changing TV channels. Notably, the mu signal also remains subdued while we observe someone else in action, such as on television, which alludes to the influence of mirror neurons. This suggests that our brains do not simply passively register what we see, but actively simulate it, engaging systems normally reserved for action." },
+        { "label": "E", "text": "Rizzolatti, Fogassi, and Gallese have coined the term 'direct matching hypothesis' to delineate the concept of mirror neurons. They asserted that to comprehend the movements of sports stars, we need to align the visual representation of the observed action with our own motor representation of the same action. According to this theory, watching an Olympic athlete can evoke a resonance in the observer's motor system. The observer's 'motor knowledge' is harnessed to decipher the observed action. However, mirror neurons extend beyond being merely neural foundations for our sporting inclinations. They also enable observers to enhance their athletic abilities through the process of observation. It turns out that watching a remarkable golfer improves our own golfing skills, and witnessing a skilled sprinter actually bolsters our running speed.\n\nThis ability to learn through observation is a vital skill. From language acquisition in infancy to understanding facial expressions, mimicking plays a fundamental role in our consciousness. The most accomplished athletes possess a premotor cortex capable of envisioning victorious movements, supplemented by the physical attributes required to translate those movements into reality. In this way, action and imagination coalesce to drive performance." },
+        { "label": "F", "text": "However, how many among us watch sport in order to enhance our athletic abilities? Most spectators tune in for the emotional roller coaster, the human drama it encompasses. This emotional connection finds its roots in mirror neurons, which allow spectators to perceive athletes' victorious movements and to share in the emotion of their triumphs.\n\nThis is because they are directly associated with the amygdala, a key area of the brain responsible for emotional processing. During the Olympics, mirror neurons in individuals around the world resonate in unison, and watching sport unifies people. The majority of us may never run a mile in under four minutes or hit a home run. Yet, as we gather around our televisions, we all briefly get a taste of the feeling of executing something flawlessly. In those fleeting moments, sport becomes more than entertainment—it becomes a shared human experience." }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "passageId": 0,
+      "groupId": "P0G1",
+      "tableGroup": true,
+      "tableTitle": "Early types of plastic",
+      "type": "Summary Completion",
+      "instruction": "Complete the table below. Write <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.",
+      "tableData": [
+        { "Name": "Celluloid",     "Date": "1860s", "Country": "USA",     "Properties": "Can be softened and reshaped by heat",                                      "Uses": "billiard balls (original use); cutlery; clothing; <Q1>" },
+        { "Name": "<Q2>",          "Date": "1907",  "Country": "USA",     "Properties": "Can't be softened after setting; good insulator; resistant to water and acid","Uses": "<Q3>; Household object" },
+        { "Name": "Polythene",     "Date": "1930s", "Country": "<Q4>",    "Properties": "Can be softened and reshaped by heat",                                      "Uses": "bottles; pipes; plastic bags" },
+        { "Name": "Polypropylene", "Date": "1950s", "Country": "",        "Properties": "",                                                                           "Uses": "bottles; pipes; plastic bags" },
+        { "Name": "Rigid PVC",     "Date": "",      "Country": "",        "Properties": "Is <Q5>",                                                                    "Uses": "external piping" },
+        { "Name": "Soft PVC",      "Date": "",      "Country": "",        "Properties": "",                                                                           "Uses": "outdoor clothing" },
+        { "Name": "Polystyrene",   "Date": "1930s", "Country": "Germany", "Properties": "Resembles <Q6>",                                                            "Uses": "food containers; toys" },
+        { "Name": "Polyurethane",  "Date": "",      "Country": "Germany", "Properties": "Usually manufactured as a <Q7>",                                            "Uses": "insulation" }
+      ],
+      "items": [
+        { "id": 1, "stem": "Bảng hàng Celluloid — Common uses: billiard balls (original use); cutlery; clothing; <strong>[Q1] = ?</strong>", "key": "photographic film", "explanation": "Đoạn 2 nêu rõ celluloid nhanh chóng được ứng dụng vào đồ dùng hàng ngày nhưng sản phẩm nổi tiếng nhất là phim ảnh.", "evidence": "But perhaps the best-known celluloid product was photographic film." },
+        { "id": 2, "stem": "Bảng cột Name — Name của loại nhựa ra đời năm 1907 tại USA, không thể làm mềm sau khi đã định hình: <strong>[Q2] = ?</strong>", "key": "Bakelite", "explanation": "Đoạn 3 đề cập đến việc Leo Baekeland phát minh ra nhựa Bakelite vào năm 1907 tại Mỹ.", "evidence": "Baekeland called it Bakelite, and it was the first of the thermosets-plastic that can be cast and moulded while hot, but cannot be softened by heat and reshaped once they have set." },
+        { "id": 3, "stem": "Bảng hàng [Q2] — Common uses: <strong>[Q3] = ?</strong>; Household object", "key": "electrical switches", "explanation": "Theo đoạn 3, nhờ các đặc tính cách điện và bền, Bakelite được dùng làm công tắc điện.", "evidence": "With these properties it was soon being used in the manufacture of electrical switches as well as a variety of domestic items." },
+        { "id": 4, "stem": "Bảng hàng Polythene (1930s) — Country of origin: <strong>[Q4] = ?</strong>", "key": "Britain", "explanation": "Đoạn 4 cho biết các nhà hóa học tại Anh đã khám phá ra nhựa polythene vào những năm 1930.", "evidence": "In the 1930s, chemists in Britain discovered that the gas ethylene would polymerize under heat and pressure to form a thermoplastic they called polythene." },
+        { "id": 5, "stem": "Bảng hàng Rigid PVC — Properties: Is <strong>[Q5] = ?</strong>", "key": "fireproof", "explanation": "Đoạn 4 mô tả PVC cứng là một loại nhựa chống cháy.", "evidence": "produced rigid PVC (polyvinyl chloride), a fireproof plastic suitable for drains and gutters." },
+        { "id": 6, "stem": "Bảng hàng Polystyrene (1930s, Germany) — Properties: Resembles <strong>[Q6] = ?</strong>", "key": "glass", "explanation": "Đoạn 5 so sánh độ cứng và trong suốt của Polystyrene với thủy tinh.", "evidence": "Polystyrene, a hard, clear material like glass, was developed during the 1930s in Germany" },
+        { "id": 7, "stem": "Bảng hàng Polyurethane (Germany) — Properties: Usually manufactured as a <strong>[Q7] = ?</strong>", "key": "foam", "explanation": "Đoạn 5 ghi nhận Polyurethane thường được sản xuất dưới dạng bọt.", "evidence": "Polyurethane, developed in the same country, was commonly produced as a foam which was very useful in the production of insulating materials." }
+      ]
+    },
+    {
+      "passageId": 0,
+      "groupId": "P0G2",
+      "type": "TRUE/FALSE/NOT GIVEN",
+      "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this.",
+      "items": [
+        { "id": 8, "stem": "The chemical structure of rubber is very different to that of plastics.", "key": "FALSE", "explanation": "<strong>Tại sao FALSE, không phải NOT GIVEN?</strong> Câu hỏi nói cấu trúc hóa học của cao su <em>rất khác</em> nhựa. Bài đọc KHÔNG nói 'không có thông tin về cao su' — ngược lại, bài nêu rõ cao su và nhựa dùng chung <strong>cùng một nguyên lý liên kết hóa học</strong> (polymerization). Vì bài trực tiếp bác bỏ tuyên bố này (nói giống nhau thay vì rất khác), đây là FALSE. NOT GIVEN chỉ dùng khi bài không đề cập đến mối quan hệ đó theo cách nào cả.", "evidence": "The same bonding principle-polymerization-is the basis of the creation of a huge range of plastics by the chemical industry." },
+        { "id": 9, "stem": "John Wesley Hyatt was an industrial chemist.", "key": "NOT GIVEN", "explanation": "<strong>Tại sao NOT GIVEN, không phải FALSE?</strong> Câu hỏi hỏi về <em>nghề nghiệp</em> của Hyatt — cụ thể là 'nhà hóa học công nghiệp'. Bài đọc chỉ nêu ông <em>thắng giải thưởng</em> với celluloid, không nói ông là gì (nhà hóa học, thợ in, hay người làm thí nghiệp). Vì bài không xác nhận <strong>cũng không phủ nhận</strong> nghề nghiệp của ông, đây là NOT GIVEN. FALSE đòi hỏi bài phải nói điều gì đó <em>trái ngược</em> (ví dụ: 'Hyatt là thợ in' hoặc 'không phải nhà hóa học') — mà bài không làm vậy.", "evidence": "The prize was won by John Wesley Hyatt, with a material called celluloid." },
+        { "id": 10, "stem": "Celluloid and Bakelite react in the same way to heat.", "key": "FALSE", "explanation": "<strong>Tại sao FALSE, không phải NOT GIVEN?</strong> Câu hỏi nói celluloid và Bakelite <em>phản ứng với nhiệt theo cùng một cách</em>. Bài đọc trực tiếp mô tả cả hai: celluloid là thermoplastic — <strong>có thể làm mềm và định hình lại bằng nhiệt</strong>; Bakelite là thermoset — <strong>không thể làm mềm sau khi đã định hình</strong>. Sự đối lập này được nêu rõ ràng, bác bỏ trực tiếp tuyên bố 'phản ứng giống nhau' → FALSE. NOT GIVEN chỉ áp dụng khi bài không có thông tin về phản ứng nhiệt của một hoặc cả hai loại nhựa.", "evidence": "Celluloid can be repeatedly softened and reshaped by heat, and is known as a thermoplastic." },
+        { "id": 11, "stem": "If an object is made of several plastics, these prove hard to break down and reuse.", "key": "TRUE", "explanation": "Đoạn 8 xác nhận việc tái chế nhựa khó khăn khi một vật dụng chứa nhiều loại nhựa khác nhau.", "evidence": "Nor is it very easy to recycle plastics, as different types of plastics, as different types of plastic are often found in the same items and call for different treatments." },
+        { "id": 12, "stem": "Adding starch to plastic makes it more durable.", "key": "FALSE", "explanation": "<strong>Tại sao FALSE, không phải NOT GIVEN?</strong> Câu hỏi nói thêm tinh bột làm nhựa <em>bền hơn</em>. Bài đọc nói hoàn toàn ngược lại: tinh bột bị vi khuẩn tấn công, khiến nhựa <strong>tự rã ra</strong> (fall apart) — tức là kém bền hơn, không phải bền hơn. Bài đọc có thông tin về tác dụng của tinh bột và tác dụng đó <em>trái chiều</em> với câu hỏi → FALSE. NOT GIVEN chỉ dùng nếu bài không đề cập đến tác dụng của tinh bột lên độ bền của nhựa theo hướng nào cả.", "evidence": "Plastics can be made biodegradable by incorporating into their structure a material such as starch, which is attacked by bacteria and causes the plastic to fall apart." },
+        { "id": 13, "stem": "Containers which are designed to decompose need particular storage conditions.", "key": "TRUE", "explanation": "Đoạn cuối nêu rõ chai làm từ vật liệu tự hủy cần được bảo quản trong bóng tối để tránh rã ra quá sớm.", "evidence": "although bottles made of such materials have to be stored in the dark, to ensure they do not disintegrate before they have been used." }
+      ]
+    },
+    {
+      "passageId": 1,
+      "groupId": "P1G1",
+      "type": "Matching Headings",
+      "instruction": "Choose the correct heading for each paragraph from the list of headings below. Choose the correct number, i–x, for questions 14–20.<br><br><table style='width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;'><thead><tr style='background:var(--navy);color:var(--gold);'><th style='border:1px solid #ccc;padding:6px 10px;text-align:left;' colspan='2'>List of Headings</th></tr></thead><tbody><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;width:28px;'>i</td><td style='border:1px solid #ccc;padding:5px 10px;'>Global resistance to lean manufacturing</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>ii</td><td style='border:1px solid #ccc;padding:5px 10px;'>The historical context</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>iii</td><td style='border:1px solid #ccc;padding:5px 10px;'>Procedures for controlling quality</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>iv</td><td style='border:1px solid #ccc;padding:5px 10px;'>The pros and cons of different production systems</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>v</td><td style='border:1px solid #ccc;padding:5px 10px;'>The impact on profits</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>vi</td><td style='border:1px solid #ccc;padding:5px 10px;'>Procedures for controlling supply</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>vii</td><td style='border:1px solid #ccc;padding:5px 10px;'>The origin of the term</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>viii</td><td style='border:1px solid #ccc;padding:5px 10px;'>A crucial difference in levels of quality</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>ix</td><td style='border:1px solid #ccc;padding:5px 10px;'>Working conditions</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>x</td><td style='border:1px solid #ccc;padding:5px 10px;'>Interdependent strategies for controlling expenditure</td></tr></tbody></table>",
+      "items": [
+        { "id": 14, "stem": "Paragraph 14", "key": "ii", "explanation": "Đoạn này tóm lược lịch sử phát triển sản xuất từ Ford đến Toyota.", "evidence": "After the First World War, car makers Henry Ford and Arthur Sloan of General Motors moved world manufacturing from centuries of craft production into the age of mass production." },
+        { "id": 15, "stem": "Paragraph 15", "key": "iv", "explanation": "Đoạn này so sánh ưu và nhược điểm của sản xuất thủ công, sản xuất hàng loạt và sản xuất tinh gọn.", "evidence": "Perhaps the best way to describe lean production is to compare it with the two other major manufacturing systems: craft production and mass production." },
+        { "id": 16, "stem": "Paragraph 16", "key": "vii", "explanation": "Giải thích nguồn gốc cái tên 'Lean production' (sản xuất tinh gọn) do sử dụng ít nguồn lực hơn.", "evidence": "Lean production is so called because, compared with mass production, it uses less of everything" },
+        { "id": 17, "stem": "Paragraph 17", "key": "viii", "explanation": "Đề cập đến sự khác biệt lớn về tiêu chuẩn chất lượng giữa hai hệ thống.", "evidence": "Perhaps the most striking contrast between mass and lean production systems lies in their production standards." },
+        { "id": 18, "stem": "Paragraph 18", "key": "x", "explanation": "Nói về ba mục tiêu bổ trợ (kiểm soát số lượng, chất lượng, con người) phải thực hiện đồng thời để giảm chi phí.", "evidence": "it must meet three other intermediate objectives in order to achieve this: quantity control, quality assurance and respect for humanity." },
+        { "id": 19, "stem": "Paragraph 19", "key": "vi", "explanation": "Mô tả quy trình Just-in-time để kiểm soát việc cung ứng linh kiện.", "evidence": "The continuous flow of lean manufacturing production relies on two practical mechanisms: just-in-time and autonomation." },
+        { "id": 20, "stem": "Paragraph 20", "key": "iii", "explanation": "Tập trung vào cơ chế Autonomation để kiểm soát lỗi và đảm bảo chất lượng.", "evidence": "Autonomation is the automatic checking for abnormalities in the production process." }
+      ]
+    },
+    {
+      "passageId": 1,
+      "groupId": "P1G2",
+      "type": "Summary Completion",
+      "instruction": "Complete the sentences below. Write NO MORE THAN THREE WORDS from the passage for each answer.",
+      "items": [
+        { "id": 21, "stem": "A small number of unusual cars are still produced by the [21] method.", "key": "craft", "explanation": "Đoạn 15 nêu ví dụ hiện nay vẫn có xe thể thao ngoại lai được sản xuất thủ công (craft).", "evidence": "The craft producer uses highly skilled workers and simple but flexible tools to make exactly what the customer asks for." },
+        { "id": 22, "stem": "Lean production requires staff who are [22]", "key": "multi-skilled", "explanation": "Trong sản xuất tinh gọn, công ty bổ nhiệm các đội ngũ công nhân đa năng (multi-skilled).", "evidence": "Towards this end, companies appoint teams of multi-skilled workers to all levels of the organisation" },
+        { "id": 23, "stem": "Lean production employs fewer people, and uses less [23], equipment and time.", "key": "manufacturing space", "explanation": "Đoạn 16 liệt kê các nguồn lực được tiết kiệm, bao gồm không gian sản xuất.", "evidence": "it uses less of everything – half the human effort in the factory, half the manufacturing space, half the investment in tools" },
+        { "id": 24, "stem": "Storage facilities are not needed if a procedure known as [24] is implemented in the lean production method.", "key": "just-in-time", "explanation": "Khi áp dụng Just-in-time, hàng tồn dư bị loại bỏ, giúp kho bãi trở nên không cần thiết.", "evidence": "If just-in-time is fully realised throughout the company, then superfluous inventories are completely eliminated from the factory, making stores or warehouses unnecessary." },
+        { "id": 25, "stem": "Autonomation is a procedure for spotting any [25] in the products on a production line.", "key": "abnormalities", "explanation": "Autonomation định nghĩa là việc kiểm tra tự động các điểm bất thường (abnormalities).", "evidence": "Autonomation is the automatic checking for abnormalities in the production process." },
+        { "id": 26, "stem": "At Toyota factories, [26] are suspended above manual production lines in order to show where production has to be halted.", "key": "lights", "explanation": "Tại các nhà máy Toyota, đèn (lights) được treo cao để báo vị trí có vấn đề khi dây chuyền dừng.", "evidence": "and lights, which are hung so high in the factory that they are visible to everyone, indicate the position of the problem." }
+      ]
+    },
+    {
+      "passageId": 2,
+      "groupId": "P2G1",
+      "type": "Matching Information",
+      "instruction": "Which paragraph contains the following information? Choose the correct letter, A-F, in boxes 27-32. NB You may use any letter more than once.",
+      "items": [
+        { "id": 27, "stem": "reasons why watching sport can bring emotional satisfaction", "key": "F", "explanation": "Đoạn F giải thích sự kết nối cảm xúc qua neuron gương liên kết với hạch hạnh nhân (amygdala).", "evidence": "This is because they are directly associated with the amygdala, a key area of the brain responsible for emotional processing." },
+        { "id": 28, "stem": "an explanation of why beginners struggle with sports tasks", "key": "B", "explanation": "Đoạn B giải thích người mới bắt đầu gặp khó vì họ phải nỗ lực có ý thức bằng các vùng não bên cạnh vỏ não vận động.", "evidence": "This is because novices rely on conscious effort, utilising brain regions adjacent to the premotor cortex." },
+        { "id": 29, "stem": "a factor that can work alongside mirroring in sports competitions to maintain peak performance", "key": "E", "explanation": "Đoạn E nói về sự kết hợp giữa vỏ não vận động (hình ảnh hóa chiến thắng) và các thuộc tính thể chất.", "evidence": "supplemented by the physical attributes required to translate those movements into reality. In this way, action and imagination coalesce to drive performance." },
+        { "id": 30, "stem": "a comparison between the mirror neurons of human beings and primates", "key": "C", "explanation": "Đoạn C so sánh hệ thống neuron gương ở động vật linh trưởng và hệ thống tinh vi hơn ở con người.", "evidence": "mirror neurons are activated when a primate performs a particular action, such as grasping or holding an object, or when it witnesses another individual performing a comparable action." },
+        { "id": 31, "stem": "mention of integrating visual and motor processes to understand athletic movements", "key": "E", "explanation": "Đoạn E đề cập đến giả thuyết khớp trực tiếp giữa hình ảnh thị giác và đại diện vận động của bản thân.", "evidence": "we need to align the visual representation of the observed action with our own motor representation of the same action." },
+        { "id": 32, "stem": "reference to the first discovery of brain activity associated with mirror neurons", "key": "D", "explanation": "Đoạn D nhắc tới các nhà sinh lý học Pháp Gastaut và Bert vào năm 1954 lần đầu nhận ra các mô hình sóng não này.", "evidence": "This neural mirroring was initially identified in 1954 by French physiologists Gastaut and Bert" }
+      ]
+    },
+    {
+      "passageId": 2,
+      "groupId": "P2G2",
+      "type": "Multiple Choice",
+      "instruction": "Choose the correct answer.",
+      "items": [
+        { "id": 33, "stem": "What point does the writer make about professional athletes in Paragraph B?", "options": ["A. They meticulously plan each phase of their movements.", "B. They engage in regular practice to retain and refine their skills.", "C. They actively consider and analyse the actions of their peers.", "D. They perform their actions without conscious contemplation."], "key": "D", "explanation": "Đoạn B khẳng định các chuyên gia thực hiện động tác một cách bản năng như lái tự động, không cần điều khiển có ý thức.", "evidence": "Their swing occurs with the serenity of a refined autopilot, requiring no conscious control." },
+        { "id": 34, "stem": "In this passage, the writer mentions the example of a remarkable golfer to illustrate", "options": ["A. the critical role of imitation in the formation of consciousness.", "B. the improvement of sporting ability through watching sport.", "C. the stimulation of a resonance in the observer's motor system.", "D. the motivation of the observer's interest and love for golf."], "key": "B", "explanation": "Đoạn E chỉ ra rằng việc quan sát một golfer giỏi giúp cải thiện kỹ năng chơi golf của chính chúng ta.", "evidence": "It turns out that watching a remarkable golfer improves our own golfing skills" },
+        { "id": 35, "stem": "The principal motivation for watching sport mentioned by the writer is", "options": ["A. to improve our physical ability by analyzing the athletes' technical strategies", "B. to unite viewers from different nations.", "C. to experience intense positive emotions by immersing oneself in sport.", "D. to become a sports professional."], "key": "C", "explanation": "Đoạn F nói hầu hết khán giả xem vì sự kịch tính và kết nối cảm xúc với chiến thắng của vận động viên.", "evidence": "Most spectators tune in for the emotional roller coaster, the human drama it encompasses." }
+      ]
+    },
+    {
+      "passageId": 2,
+      "groupId": "P2G3",
+      "type": "YES/NO/NOT GIVEN",
+      "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
+      "items": [
+        { "id": 36, "stem": "The emergence of Homer's epic poetry occurred in the same historical period as the beginning of the Olympic Games.", "key": "YES", "explanation": "<strong>YES</strong> — Tác giả viết rằng <em>trong thời đại Homer công bố sử thi</em>, người Hy Lạp cũng <em>khởi xướng</em> lễ hội thể thao (Olympics). Hai sự kiện được đặt cạnh nhau trong cùng một câu với từ 'during the epoch when', thể hiện rõ quan điểm của tác giả rằng chúng xảy ra đồng thời.<br><br>⚠️ <strong>Lưu ý YES/NO/NG:</strong> Dạng này hỏi <em>quan điểm/luận điểm của tác giả</em>, không phải sự thật khách quan. Câu này YES vì tác giả <em>tuyên bố</em> hai sự kiện xảy ra cùng thời kỳ.", "evidence": "During the epoch when the poet Homer unveiled his grand epic, the ancient Greeks initiated a festival where men contended in a race of roughly 200 metres." },
+        { "id": 37, "stem": "The Italian scientists concluded that the motor actions encoded within the premotor cortex have no discernible link to unrelated collections of neurons.", "key": "NO", "explanation": "<strong>NO</strong> — Câu hỏi nói các nhà khoa học kết luận rằng các motor actions <em>không có liên kết</em> với các nhóm neuron khác. Nhưng tác giả trình bày ngược lại: các neurons trong premotor cortex <em>đan xen chặt chẽ</em> (intertwined) với nhau thành mạng lưới — đây là quan điểm tác giả ủng hộ xuyên suốt bài.<br><br>⚠️ <strong>Tại sao NO, không phải NOT GIVEN?</strong> Bài không im lặng — tác giả <em>trực tiếp mô tả</em> sự kết nối giữa các neurons. Câu hỏi nói 'no link' nhưng bài nói 'deeply intertwined' → mâu thuẫn thẳng với quan điểm tác giả → NO.", "evidence": "Experts, by contrast, instinctively execute perfectly balanced movements, as their actions are deeply ingrained and intertwined with neurons in the premotor cortex." },
+        { "id": 38, "stem": "Spectators can achieve flawless golf swings merely by watching the Masters Tournament without physical practice.", "key": "NO", "explanation": "<strong>NO</strong> — Câu hỏi nói khán giả có thể đánh golf hoàn hảo <em>chỉ bằng cách xem</em>, không cần luyện tập. Tác giả đưa ra quan điểm ngược: vận động viên giỏi nhất sở hữu premotor cortex có thể hình dung động tác thắng lợi, <em>nhưng còn cần thêm</em> các thuộc tính thể chất thực tế để biến hình ảnh đó thành hiện thực.<br><br>⚠️ <strong>Tại sao NO, không phải NOT GIVEN?</strong> Tác giả có nói watching cải thiện kỹ năng (đoạn E), nhưng cũng nêu rõ physical attributes là điều kiện <em>bổ sung cần thiết</em> — điều đó bác bỏ 'merely by watching' trong câu hỏi.", "evidence": "supplemented by the physical attributes required to translate those movements into reality." },
+        { "id": 39, "stem": "Some neuroscientists believe that certain types of still images might activate mirror neurons under specific experimental conditions.", "key": "NOT GIVEN", "explanation": "<strong>NOT GIVEN</strong> — Tác giả có đề cập đến ảnh tĩnh: khi nhìn vào ảnh tĩnh, neuron gương <em>hoàn toàn im lặng</em>. Nhưng câu hỏi hỏi liệu có nhà khoa học nào cho rằng <em>trong điều kiện thí nghiệm đặc biệt</em> ảnh tĩnh vẫn có thể kích hoạt mirror neurons không — tác giả không đề cập đến khả năng này theo bất kỳ hướng nào.<br><br>⚠️ <strong>Tại sao NOT GIVEN, không phải NO?</strong> NO đòi hỏi tác giả phải <em>bác bỏ</em> khả năng đó. Nhưng tác giả chỉ nói ảnh tĩnh thông thường không kích hoạt — không phủ nhận trường hợp 'điều kiện thí nghiệm đặc biệt'. Phạm vi câu hỏi rộng hơn những gì bài đề cập.", "evidence": "If we stare at a photograph, a static image of a runner striding ahead, our mirror neurons remain utterly silent." },
+        { "id": 40, "stem": "The mu system is suppressed while we are dynamically involved in a particular activity.", "key": "YES", "explanation": "<strong>YES</strong> — Tác giả mô tả tín hiệu mu <em>dissipating</em> (biến mất/bị triệt tiêu) khi chúng ta thực hiện hoạt động thể chất tích cực như chơi thể thao hay thay kênh TV. 'Suppressed' trong câu hỏi là paraphrase của 'dissipating' trong bài — cùng nghĩa tín hiệu mu giảm xuống.<br><br>⚠️ <strong>Lưu ý YES/NO/NG:</strong> Đây là quan điểm/mô tả của tác giả về hoạt động của mu system, không phải sự thật bên ngoài cần kiểm chứng. Tác giả khẳng định điều này → YES.", "evidence": "remaining active during periods of bodily stillness but dissipating when we undertake active pursuits like playing a sport or changing TV channels." }
+      ]
+    }
+  ]
+};
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+let currentPassage = 0;
+let highlights = [];    // { startContainer, startOffset, endContainer, endOffset, markEl }
+let checkedQuestions = {};   // { qId: true }
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Inject test name into sidebar and topbar
+  const tn = document.getElementById('sidebar-test-name');
+  if (tn) tn.textContent = TEACHER_DATA.meta.testName;
+  const tm = document.getElementById('topbar-meta');
+  if (tm) tm.textContent = `${TEACHER_DATA.meta.title} — ${TEACHER_DATA.meta.testName}`;
+
+  buildQuestionMap();
+  renderPassage(0);
+  renderQuestions(0);
+  buildAllKeysTable();
+  setupSplitter();
+  setupHighlightTool();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   QUESTION MAP (sidebar)
+═══════════════════════════════════════════════════════════════ */
+function buildQuestionMap() {
+  const grid = document.getElementById('q-map');
+  grid.innerHTML = '';
+  for (let i = 1; i <= TEACHER_DATA.meta.totalQuestions; i++) {
+    const chip = document.createElement('div');
+    chip.className = 'q-chip';
+    chip.textContent = i;
+    chip.id = `qchip-${i}`;
+    chip.onclick = () => scrollToQuestion(i);
+    grid.appendChild(chip);
+  }
+}
+
+function scrollToQuestion(id) {
+  const el = document.getElementById(`q-card-${id}`);
+  if (el) {
+    // Switch passage if needed
+    const qData = findQuestionById(id);
+    if (qData && qData.passageId !== currentPassage) {
+      switchPassage(qData.passageId);
+      setTimeout(() => {
+        const el2 = document.getElementById(`q-card-${id}`);
+        if (el2) el2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function findQuestionById(id) {
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      if (item.id === id) return { ...item, passageId: group.passageId };
+    }
+  }
+  return null;
+}
+
+function updateChipState(id, state) {
+  const chip = document.getElementById(`qchip-${id}`);
+  if (!chip) return;
+  chip.classList.remove('answered', 'checked');
+  if (state) chip.classList.add(state);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSAGE RENDERER
+═══════════════════════════════════════════════════════════════ */
+function renderPassage(passageIdx) {
+  const p = TEACHER_DATA.passages[passageIdx];
+  const container = document.getElementById('passage-content');
+  document.getElementById('passage-badge').textContent = `Passage ${passageIdx + 1}`;
+
+  let html = `
+    <div class="passage-header">
+      <div class="passage-eyebrow">Reading Passage ${passageIdx + 1} · Questions ${p.qRange[0]}–${p.qRange[1]}</div>
+      <div class="passage-title">${p.title}</div>
+      <div class="passage-source">${p.source}</div>
+      <div class="passage-divider"></div>
+    </div>
+    <div class="passage-body" id="passage-body-${passageIdx}">
+  `;
+
+  for (const para of p.paragraphs) {
+    html += `<p><span class="para-label">${para.label}</span>&nbsp;&nbsp;${para.text}</p>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   QUESTIONS RENDERER
+═══════════════════════════════════════════════════════════════ */
+function renderQuestions(passageIdx) {
+  const container = document.getElementById('questions-content');
+  const groups = TEACHER_DATA.questions.filter(g => g.passageId === passageIdx);
+
+  if (!groups.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📄</div>
+      <div class="empty-state-title">No questions</div>
+      <div class="empty-state-sub">No questions found for this passage.</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  for (const group of groups) {
+    const firstId = group.items[0].id;
+    const lastId = group.items[group.items.length - 1].id;
+
+    html += `<div class="q-group">
+      <div class="q-group-header">
+        <span class="q-group-num">Questions ${firstId}–${lastId}</span>
+        <span class="q-type-badge" onclick="openTipsPanel('${group.type}')">
+          <span class="tip-icon">💡</span>${group.type}
+        </span>
+      </div>
+      <div class="q-group-instruction">${group.instruction}</div>`;
+
+    if (group.tableGroup) {
+      html += renderTableGroup(group);
+    } else {
+      for (const item of group.items) {
+        const isMCQ = !!item.options;
+        html += `<div class="q-card" id="q-card-${item.id}">
+          <div class="q-card-top">
+            <div class="q-num-badge">${item.id}</div>
+            <div class="q-content">
+              <div class="q-stem">${item.stem}</div>`;
+
+        if (isMCQ) {
+          html += `<div class="q-options">`;
+          for (const opt of item.options) {
+            const letter = opt[0];
+            html += `<div class="q-option" onclick="selectOption(${item.id}, '${letter}', this)">
+              <div class="opt-letter">${letter}</div>
+              <span>${opt.substring(3)}</span>
+            </div>`;
+          }
+          html += `</div>`;
+        } else if (group.type.includes('TRUE') || group.type.includes('FALSE')) {
+          /* Detect YES/NO/NG vs TRUE/FALSE/NG from key values */
+          const sampleKey = item.key.toUpperCase();
+          const isYesNo = sampleKey === 'YES' || sampleKey === 'NO';
+          const opts = isYesNo
+            ? ['YES', 'NO', 'NOT GIVEN']
+            : ['TRUE', 'FALSE', 'NOT GIVEN'];
+          html += `<div class="teacher-select-wrap">
+            <select class="teacher-select" id="teacher-input-${item.id}">
+              <option value="">— Chọn đáp án —</option>
+              ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
+            </select>
+          </div>`;
+        } else {
+          html += `<div class="teacher-input-wrap">
+            <input class="teacher-input" id="teacher-input-${item.id}" 
+              type="text" placeholder="Nhập đáp án học sinh…"
+              onkeydown="if(event.key==='Enter') checkAnswer(${item.id})">
+          </div>`;
+        }
+
+        html += `
+              <div style="display:flex;gap:6px;">
+                <button class="btn-check" onclick="checkAnswer(${item.id})">Check →</button>
+              </div>
+              <div class="correction-panel" id="correction-${item.id}">
+                <div class="correct-row key-row">
+                  <span class="cr-icon">✅</span>
+                  <span class="cr-content"><span class="cr-label">Key:</span> <strong>${item.key}</strong></span>
+                </div>
+                <div class="correct-row explain-row">
+                  <span class="cr-icon">💡</span>
+                  <span class="cr-content"><span class="cr-label">Giải thích:</span> ${item.explanation}</span>
+                </div>
+                <div class="correct-row evidence-row">
+                  <div class="evidence-row-inner">
+                    <div class="evidence-top">
+                      <span class="cr-icon">🔍</span>
+                      <span class="cr-content"><span class="cr-label">Evidence:</span> "…${highlightEvidence(item.evidence, item.key)}…"</span>
+                    </div>
+                    <button class="btn-view-evidence" onclick="viewEvidenceInPassage(this)" data-evidence="${item.evidence.replace(/"/g,'&quot;')}" data-key="${item.key.replace(/"/g,'&quot;')}">
+                      📍 Xem trong bài
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Restore checked states
+  for (const [id, state] of Object.entries(checkedQuestions)) {
+    if (state) {
+      const panel = document.getElementById(`correction-${id}`);
+      if (panel) panel.classList.add('open');
+      const tblItem = document.getElementById(`tbl-correction-${id}`);
+      if (tblItem) tblItem.classList.add('open');
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE GROUP RENDERER
+   Builds inline-input table from group.tableData.
+   Single correction slot below table — replaced on each Check.
+═══════════════════════════════════════════════════════════════ */
+function renderTableGroup(group) {
+  const tableTitle = group.tableTitle || '';
+  const rows = group.tableData || [];
+
+  function cellHtml(text) {
+    return text.replace(/<Q(\d+)>/g, (match, n) => {
+      const id = parseInt(n);
+      return `<span class="tbl-q-wrap">
+        <span class="tbl-q-num">${id}</span>
+        <input class="tbl-input" id="tbl-input-${id}" type="text" placeholder="…"
+          onkeydown="if(event.key==='Enter') checkTableAnswer(${id})">
+        <button class="tbl-check-btn" onclick="checkTableAnswer(${id})">✓</button>
+      </span>`;
+    });
+  }
+
+  let tHtml = `<table class="q-inline-table">
+    <thead>
+      <tr class="tbl-title-row"><th colspan="5">${tableTitle}</th></tr>
+      <tr>
+        <th>Name</th><th>Date</th><th>Country of origin</th><th>Properties</th><th>Common uses</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  for (const row of rows) {
+    tHtml += `<tr>
+      <td class="tbl-input-cell">${cellHtml(row.Name)}</td>
+      <td>${cellHtml(row.Date)}</td>
+      <td class="tbl-input-cell">${cellHtml(row.Country)}</td>
+      <td class="tbl-input-cell">${cellHtml(row.Properties)}</td>
+      <td class="tbl-input-cell">${cellHtml(row.Uses)}</td>
+    </tr>`;
+  }
+  tHtml += `</tbody></table>`;
+
+  /* Single shared correction slot */
+  const slotHtml = `<div class="tbl-correction-slot" id="tbl-slot-${group.groupId}"></div>`;
+
+  /* Invisible anchors for sidebar chip scroll */
+  let anchors = '';
+  for (const item of group.items) {
+    anchors += `<div id="q-card-${item.id}" style="height:0;overflow:hidden;margin:0;padding:0;"></div>`;
+  }
+
+  return `<div class="q-table-wrap">${tHtml}</div>${slotHtml}${anchors}`;
+}
+
+/* ─── checkTableAnswer: injects result into single shared slot ─── */
+function checkTableAnswer(qId) {
+  const inputEl = document.getElementById(`tbl-input-${qId}`);
+  if (!inputEl) return;
+
+  const studentAnswer = inputEl.value.trim();
+  const item = findItemById(qId);
+  if (!item) return;
+
+  const keys = item.key.split(/\s*\/\s*/).map(k => k.trim().toLowerCase());
+  const isCorrect = keys.includes(studentAnswer.toLowerCase());
+
+  /* Visual feedback on input */
+  inputEl.classList.remove('correct', 'wrong');
+  inputEl.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  /* Find which group this item belongs to → get its slot */
+  let groupId = null;
+  for (const g of TEACHER_DATA.questions) {
+    if (g.tableGroup && g.items.some(i => i.id === qId)) { groupId = g.groupId; break; }
+  }
+  const slot = groupId ? document.getElementById(`tbl-slot-${groupId}`) : null;
+  if (!slot) return;
+
+  const resultIcon = isCorrect ? '✅' : '❌';
+  const evHtml = highlightEvidence(item.evidence, item.key);
+  const evEscaped = item.evidence.replace(/"/g, '&quot;');
+
+  slot.innerHTML = `
+    <div class="tbl-correction-item open">
+      <div class="tbl-correction-header">
+        <span class="tbl-q-num">${qId}</span>
+        <span>${resultIcon}</span>
+        <span>Key: <strong>${item.key}</strong></span>
+      </div>
+      <div class="correct-row explain-row" style="margin:0;">
+        <span class="cr-icon">💡</span>
+        <span class="cr-content">${item.explanation}</span>
+      </div>
+      <div class="correct-row evidence-row" style="margin:0;">
+        <div class="evidence-row-inner">
+          <div class="evidence-top">
+            <span class="cr-icon">🔍</span>
+            <span class="cr-content"><span class="cr-label">Evidence:</span> "…${evHtml}…"</span>
+          </div>
+          <button class="btn-view-evidence" onclick="viewEvidenceInPassage(this)" data-evidence="${evEscaped}" data-key="${item.key.replace(/"/g, '&quot;')}">
+            📍 Xem trong bài
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  checkedQuestions[qId] = true;
+  updateChipState(qId, isCorrect ? 'checked' : 'answered');
+  registerStudentAnswer(qId, studentAnswer, isCorrect);
+}
+
+function findItemById(qId) {
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      if (item.id === qId) return item;
+    }
+  }
+  return null;
+}
+
+function highlightEvidence(evidence, key) {
+  if (!evidence) return '';
+  const keywords = key.split(/[\s,\/]+/).filter(w => w.length > 2);
+  let result = evidence;
+  for (const kw of keywords) {
+    const re = new RegExp(`(${kw})`, 'gi');
+    result = result.replace(re, `<span class="evidence-keyword">$1</span>`);
+  }
+  return result;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW EVIDENCE IN PASSAGE
+   Finds the evidence phrase inside the passage pane, scrolls to it,
+   wraps it in a temporary flash span, then removes it after 3s.
+═══════════════════════════════════════════════════════════════ */
+let _activeEvidenceBtn = null;
+let _activeFlashSpans = [];
+
+function viewEvidenceInPassage(btn) {
+  const evidenceText = btn.dataset.evidence;
+  if (!evidenceText) return;
+
+  // Toggle off if same button clicked again
+  if (_activeEvidenceBtn === btn) {
+    clearEvidenceFlash();
+    return;
+  }
+
+  // Clear any previous flash
+  clearEvidenceFlash();
+
+  _activeEvidenceBtn = btn;
+  btn.classList.add('active');
+  btn.textContent = '✕ Đang xem…';
+
+  const passagePane = document.getElementById('passage-pane');
+  const keyText     = (btn.dataset.key || '').trim();
+
+  // Strategy: try the answer KEY first (short, exact, always in passage).
+  // If key search succeeds → highlight just the key phrase.
+  // Otherwise fall back to searching the evidence sentence.
+  let result = null;
+
+  if (keyText) {
+    result = findTextInPane(passagePane, keyText);
+  }
+
+  if (!result) {
+    // Fallback: use evidence, taking only the first segment before any '...'
+    const rawSearch = evidenceText.split(/\.\.\./)[0].trimEnd();
+    const searchStr = rawSearch.replace(/\s+/g, ' ').trim();
+    result = findTextInPane(passagePane, searchStr);
+  }
+
+  if (!result) {
+    btn.textContent = '⚠ Không tìm thấy';
+    btn.classList.remove('active');
+    setTimeout(() => { btn.textContent = '📍 Xem trong bài'; }, 2000);
+    _activeEvidenceBtn = null;
+    return;
+  }
+
+  // Wrap the matched range in flash spans (may span nodes)
+  const flashSpans = wrapRangeWithFlash(result);
+  _activeFlashSpans = flashSpans;
+
+  // Scroll the first span into view in the passage pane
+  if (flashSpans.length > 0) {
+    flashSpans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Auto-clear after 3.5s
+  setTimeout(() => {
+    if (_activeEvidenceBtn === btn) clearEvidenceFlash();
+  }, 3500);
+}
+
+function clearEvidenceFlash() {
+  _activeFlashSpans.forEach(span => {
+    const parent = span.parentNode;
+    if (!parent) return;
+    while (span.firstChild) parent.insertBefore(span.firstChild, span);
+    parent.removeChild(span);
+    try { parent.normalize(); } catch(e) {}
+  });
+  _activeFlashSpans = [];
+
+  if (_activeEvidenceBtn) {
+    _activeEvidenceBtn.classList.remove('active');
+    _activeEvidenceBtn.textContent = '📍 Xem trong bài';
+    _activeEvidenceBtn = null;
+  }
+}
+
+/**
+ * Find `searchStr` across text nodes inside `container`.
+ * Returns a Range covering the match, or null.
+ *
+ * Strategy: build a parallel "collapsed" string where each character maps
+ * back to an exact (nodeIndex, offsetInNode) position. This avoids the
+ * broken shadowToFull index-mapping bug in the previous version.
+ *
+ * NOTE: text nodes inside .para-label spans are skipped — their paragraph
+ * numbers (e.g. "2", "A") would corrupt the index mapping.
+ */
+function findTextInPane(container, searchStr) {
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      // Skip text inside .para-label spans
+      let el = node.parentElement;
+      while (el && el !== container) {
+        if (el.classList && el.classList.contains('para-label')) return NodeFilter.FILTER_REJECT;
+        el = el.parentElement;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) nodes.push(node);
+
+  // Build collapsed text + a parallel position array
+  // posMap[i] = { ni: nodeIndex, oi: offsetInNode } for collapsed[i]
+  const posMap = [];
+  let collapsed = '';
+  let prevSpace = false;
+
+  for (let ni = 0; ni < nodes.length; ni++) {
+    const text = nodes[ni].textContent;
+    for (let oi = 0; oi < text.length; oi++) {
+      const ch = text[oi];
+      const isSpace = /\s/.test(ch);
+      if (isSpace) {
+        if (!prevSpace) {
+          posMap.push({ ni, oi });
+          collapsed += ' ';
+          prevSpace = true;
+        }
+        // skip additional whitespace
+      } else {
+        posMap.push({ ni, oi });
+        collapsed += ch;
+        prevSpace = false;
+      }
+    }
+  }
+
+  const searchNorm = searchStr.replace(/\s+/g, ' ').trim();
+  const matchIdx = collapsed.indexOf(searchNorm);
+  if (matchIdx < 0) return null;
+
+  const matchEnd = matchIdx + searchNorm.length - 1;
+  if (matchEnd >= posMap.length) return null;
+
+  const startPos = posMap[matchIdx];
+  const endPos   = posMap[matchEnd];
+
+  const range = document.createRange();
+  range.setStart(nodes[startPos.ni], startPos.oi);
+  range.setEnd(nodes[endPos.ni], endPos.oi + 1);
+  return range;
+}
+
+/**
+ * Wrap a Range (possibly multi-node) with <span class="evidence-flash"> elements.
+ * Returns array of spans created.
+ */
+function wrapRangeWithFlash(range) {
+  const passagePane = document.getElementById('passage-pane');
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (!passagePane.contains(node)) continue;
+    if (!range.intersectsNode(node)) continue;
+    nodes.push(node);
+  }
+
+  const spans = [];
+  nodes.forEach(textNode => {
+    let start = 0;
+    let end = textNode.length;
+    if (textNode === range.startContainer) start = range.startOffset;
+    if (textNode === range.endContainer)   end   = range.endOffset;
+    if (start >= end) return;
+
+    const before = textNode.splitText(start);
+    before.splitText(end - start);
+
+    const span = document.createElement('span');
+    span.className = 'evidence-flash';
+    before.parentNode.insertBefore(span, before);
+    span.appendChild(before);
+    spans.push(span);
+  });
+
+  return spans;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSAGE SWITCHING
+═══════════════════════════════════════════════════════════════ */
+function switchPassage(idx) {
+  currentPassage = idx;
+
+  // Update tabs
+  document.querySelectorAll('.passage-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+
+  renderPassage(idx);
+  renderQuestions(idx);
+
+  // Scroll both panes to top
+  document.getElementById('passage-pane').scrollTop = 0;
+  document.getElementById('questions-pane').scrollTop = 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MCQ SELECTION
+═══════════════════════════════════════════════════════════════ */
+function selectOption(qId, letter, el) {
+  const card = document.getElementById(`q-card-${qId}`);
+  card.querySelectorAll('.q-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.dataset.selected = letter;
+  updateChipState(qId, 'answered');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECK ANSWER
+═══════════════════════════════════════════════════════════════ */
+function checkAnswer(qId) {
+  const panel = document.getElementById(`correction-${qId}`);
+  if (!panel) return;
+
+  panel.classList.add('open');
+  checkedQuestions[qId] = true;
+
+  // Determine correctness for report
+  const qData = findQuestionById(qId);
+  if (qData) {
+    let studentAnswer = '';
+    let isCorrect = false;
+
+    if (qData.options) {
+      // MCQ — find selected option
+      const card = document.getElementById(`q-card-${qId}`);
+      const selected = card ? card.querySelector('.q-option.selected') : null;
+      studentAnswer = selected ? selected.dataset.selected : '';
+      isCorrect = studentAnswer.toUpperCase() === qData.key.toUpperCase();
+    } else {
+      // Text input or select dropdown
+      const inputEl = document.getElementById(`teacher-input-${qId}`);
+      studentAnswer = inputEl ? inputEl.value.trim() : '';
+      const norm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
+      isCorrect = norm(studentAnswer) === norm(qData.key) ||
+        (qData.key.includes('/') && qData.key.split('/').some(k => norm(k) === norm(studentAnswer)));
+
+      // Visual feedback on input/select
+      if (inputEl && studentAnswer) {
+        inputEl.classList.remove('correct', 'wrong');
+        inputEl.classList.add(isCorrect ? 'correct' : 'wrong');
+      }
+    }
+
+    updateChipState(qId, isCorrect ? 'checked' : 'answered');
+    registerStudentAnswer(qId, studentAnswer, isCorrect);
+  }
+
+  setTimeout(() => {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 50);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALL KEYS TABLE
+═══════════════════════════════════════════════════════════════ */
+function buildAllKeysTable() {
+  const table = document.getElementById('key-table-body');
+  let html = '';
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      html += `<tr>
+        <td class="kt-num">${item.id}</td>
+        <td class="kt-key">${item.key}</td>
+        <td class="kt-type">${group.type.split(' ').slice(0,2).join(' ')}</td>
+      </tr>`;
+    }
+  }
+  table.innerHTML = html;
+}
+
+function toggleAllKeys(show) {
+  document.getElementById('all-keys-panel').classList.toggle('open', show);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HIGHLIGHT TOOL — robust multi-node, cursor-anchored, click-to-remove
+═══════════════════════════════════════════════════════════════ */
+let _hlMouseX = 0;
+let _hlMouseY = 0;
+let _pendingRange = null;
+
+function setupHighlightTool() {
+  const toolbar = document.getElementById('hl-toolbar');
+  const passagePane = document.getElementById('passage-pane');
+
+  // Track mouse position at all times for accurate toolbar placement
+  document.addEventListener('mousemove', (e) => {
+    _hlMouseX = e.clientX;
+    _hlMouseY = e.clientY;
+  });
+
+  // Click on an existing highlight → remove it
+  passagePane.addEventListener('click', (e) => {
+    const mark = e.target.closest('mark.hl-yellow');
+    if (mark) {
+      removeHighlight(mark);
+      e.stopPropagation();
+      return;
+    }
+  });
+
+  // After mouseup: check if there's a real selection inside the passage
+  document.addEventListener('mouseup', (e) => {
+    // Ignore clicks inside the toolbar itself
+    if (toolbar.contains(e.target)) return;
+
+    // Small delay so selection is settled
+    setTimeout(() => {
+      const sel = window.getSelection();
+
+      if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+        hideToolbar();
+        return;
+      }
+
+      // Verify selection is inside the passage pane
+      const range = sel.getRangeAt(0);
+      if (!passagePane.contains(range.commonAncestorContainer)) {
+        hideToolbar();
+        return;
+      }
+
+      // Store the range for later use when button is clicked
+      _pendingRange = range.cloneRange();
+
+      // Position toolbar above where the mouse is
+      showToolbarAt(_hlMouseX, _hlMouseY - 52);
+    }, 10);
+  });
+
+  // Hide toolbar on mousedown outside
+  document.addEventListener('mousedown', (e) => {
+    if (!toolbar.contains(e.target)) {
+      hideToolbar();
+    }
+  });
+
+  // Hide on scroll (re-anchoring is complex; just hide)
+  document.getElementById('passage-pane').addEventListener('scroll', () => {
+    hideToolbar();
+  });
+}
+
+function showToolbarAt(x, y) {
+  const toolbar = document.getElementById('hl-toolbar');
+  // Clamp so toolbar doesn't go off-screen
+  const tw = 130; // approx toolbar width
+  const clampedX = Math.min(Math.max(x, tw / 2 + 8), window.innerWidth - tw / 2 - 8);
+  const clampedY = Math.max(y, 8);
+  toolbar.style.left = `${clampedX}px`;
+  toolbar.style.top = `${clampedY}px`;
+  toolbar.classList.add('visible');
+}
+
+function hideToolbar() {
+  document.getElementById('hl-toolbar').classList.remove('visible');
+}
+
+function applyHighlight() {
+  const sel = window.getSelection();
+  const range = (_pendingRange && !_pendingRange.collapsed)
+    ? _pendingRange
+    : (sel && !sel.isCollapsed ? sel.getRangeAt(0) : null);
+
+  if (!range) { hideToolbar(); return; }
+
+  // Use TreeWalker to split across text nodes safely — no broken DOM
+  highlightRange(range);
+
+  // Clear selection
+  if (sel) sel.removeAllRanges();
+  _pendingRange = null;
+  hideToolbar();
+}
+
+/**
+ * Highlight a Range that may span multiple text nodes / block elements.
+ * Strategy: collect all text nodes within the range, wrap each one
+ * individually in a <mark>. This avoids the surroundContents() constraint
+ * that the range must not partially select an element, and keeps
+ * inline flow intact so text never breaks unexpectedly.
+ */
+function highlightRange(range) {
+  const passagePane = document.getElementById('passage-pane');
+
+  // Collect all text nodes touched by the range
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    // Only include nodes inside the passage pane
+    if (!passagePane.contains(node)) continue;
+    if (!range.intersectsNode(node)) continue;
+    nodes.push(node);
+  }
+
+  nodes.forEach((textNode) => {
+    // Determine which portion of this text node is selected
+    let start = 0;
+    let end = textNode.length;
+
+    if (textNode === range.startContainer) start = range.startOffset;
+    if (textNode === range.endContainer) end = range.endOffset;
+
+    if (start >= end) return; // nothing to highlight here
+
+    // Split and wrap only the selected slice
+    // splitText returns the tail; we need to be careful about order
+    const before = textNode.splitText(start);       // before = [start..end]
+    const after  = before.splitText(end - start);   // after = [end..]  (unused but needed)
+
+    const mark = document.createElement('mark');
+    mark.className = 'hl-yellow';
+    before.parentNode.insertBefore(mark, before);
+    mark.appendChild(before);
+    highlights.push(mark);
+  });
+
+  // Normalize to clean up any adjacent text nodes we created
+  // but only where it's safe (not inside inputs)
+  try {
+    const ancestor = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer;
+    ancestor.normalize && ancestor.normalize();
+  } catch(e) { /* ignore */ }
+}
+
+function removeHighlight(mark) {
+  // Unwrap the mark: move all children before the mark, then remove mark
+  const parent = mark.parentNode;
+  if (!parent) return;
+  while (mark.firstChild) {
+    parent.insertBefore(mark.firstChild, mark);
+  }
+  parent.removeChild(mark);
+  parent.normalize();
+  // Remove from highlights array
+  const idx = highlights.indexOf(mark);
+  if (idx > -1) highlights.splice(idx, 1);
+}
+
+function clearAllHighlights() {
+  // Work on a copy since removeHighlight mutates the array
+  [...highlights].forEach(mark => removeHighlight(mark));
+  highlights = [];
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESIZABLE SPLITTER
+═══════════════════════════════════════════════════════════════ */
+function setupSplitter() {
+  const splitter = document.getElementById('splitter');
+  const passagePane = document.getElementById('passage-pane');
+  const splitContainer = document.getElementById('split-container');
+
+  let isDragging = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  splitter.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startWidth = passagePane.offsetWidth;
+    splitter.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const containerW = splitContainer.offsetWidth;
+    const newW = Math.min(Math.max(startWidth + dx, 280), containerW - 280);
+    passagePane.style.width = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    splitter.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TIPS DATA — Hướng dẫn chi tiết cho từng dạng bài IELTS Reading
+═══════════════════════════════════════════════════════════════ */
+const TIPS_DATA = {
+  "YES/NO/NOT GIVEN": {
+    overview: "Dạng bài yêu cầu học sinh xác định câu phát biểu có khớp với <strong>quan điểm / luận điểm của tác giả</strong> không — khác với TRUE/FALSE/NOT GIVEN chỉ kiểm tra thông tin khách quan. Đây là điểm phân biệt then chốt mà học sinh hay bỏ qua.",
+    steps: [
+      { title: "Xác định: đây là quan điểm, không phải sự thật", text: "Câu hỏi YES/NO/NG hỏi <strong>tác giả nghĩ gì / lập luận gì</strong>, không hỏi sự kiện xảy ra trong thực tế. Tìm các từ thể hiện quan điểm: <em>argues, believes, claims, suggests, concludes</em>." },
+      { title: "Locate — tìm đoạn tác giả bày tỏ quan điểm", text: "Dùng keyword trong câu hỏi để xác định đoạn văn. Chú ý câu chủ đề và câu kết luận — đó thường là nơi tác giả nêu quan điểm rõ nhất." },
+      { title: "So sánh quan điểm", text: "<strong>YES</strong>: câu hỏi khớp với điều tác giả lập luận/tin tưởng. <strong>NO</strong>: câu hỏi đi ngược với quan điểm tác giả. <strong>NOT GIVEN</strong>: tác giả không đề cập chủ đề đó, hoặc không thể biết tác giả nghĩ gì về khía cạnh đó." },
+      { title: "Không nhầm với TRUE/FALSE", text: "TRUE/FALSE dùng thông tin khách quan trong bài. YES/NO dùng <strong>quan điểm chủ quan của tác giả</strong>. Một điều có thể là sự thật (TRUE) nhưng tác giả không nhất thiết bày tỏ ý kiến về nó (NOT GIVEN trong YES/NO/NG)." }
+    ],
+    traps: [
+      "Nhầm NOT GIVEN với NO: tác giả đề cập chủ đề nhưng không bày tỏ quan điểm về khía cạnh cụ thể câu hỏi hỏi → NOT GIVEN, không phải NO.",
+      "Dùng kiến thức thực tế: câu hỏi có thể 'đúng trong thực tế' nhưng tác giả không nói → NOT GIVEN.",
+      "Bỏ qua phạm vi câu hỏi: câu hỏi nói 'all cases', tác giả chỉ nói 'in most cases' → NO vì quan điểm không khớp hoàn toàn."
+    ],
+    bandTips: [
+      "Band 6→7: Hỏi: 'Tác giả có <em>nói gì</em> về chủ đề này không?' Nếu không → NOT GIVEN. Nếu có, câu đó đồng ý hay phản bác câu hỏi?",
+      "Band 7→8: Chú ý hedging language của tác giả — 'may', 'might', 'tends to' làm yếu quan điểm. Câu hỏi nói 'always' nhưng tác giả nói 'often' → NO.",
+      "Band 8+: Phân biệt tác giả <em>mô tả</em> quan điểm của người khác vs <em>bày tỏ</em> quan điểm của mình. Tác giả dẫn lời nhà khoa học X không có nghĩa tác giả đồng ý với X."
+    ]
+  },
+  "TRUE/FALSE/NOT GIVEN": {
+    overview: "Dạng bài yêu cầu học sinh xác định thông tin trong bài có khớp với câu phát biểu không. Đây là dạng nhiều học sinh nhầm lẫn nhất vì ranh giới giữa FALSE và NOT GIVEN rất mỏng.",
+    steps: [
+      { title: "Đọc câu hỏi trước", text: "Đọc kỹ câu phát biểu, <strong>gạch chân keyword</strong> (danh từ, tính từ, số liệu). Đây là từ cần tìm trong bài." },
+      { title: "Locate — không đọc toàn bài", text: "Dùng keyword để <strong>xác định đoạn văn</strong> có chứa thông tin liên quan. Chỉ đọc kỹ đoạn đó." },
+      { title: "So sánh từng chi tiết", text: "<strong>TRUE</strong>: bài đọc xác nhận rõ ràng. <strong>FALSE</strong>: bài đọc nói điều ngược lại. <strong>NOT GIVEN</strong>: bài không đề cập, hoặc không đủ thông tin để xác nhận/phủ nhận." },
+      { title: "Không suy luận", text: "Với NOT GIVEN, học sinh hay tự suy luận từ kiến thức bên ngoài. <strong>Chỉ dùng thông tin trong bài</strong>, không dùng kiến thức thực tế." }
+    ],
+    traps: [
+      "Nhầm FALSE với NOT GIVEN: bài đọc im lặng về chủ đề ≠ bài đọc phủ nhận.",
+      "Dừng lại ở từ quen thuộc — paraphrase thường thay đổi từ nhưng giữ nguyên nghĩa.",
+      "Qualifier bẫy: 'all', 'always', 'never', 'only' — một qualifier sai là cả câu FALSE."
+    ],
+    bandTips: [
+      "Band 6→7: Luyện phân biệt FALSE vs NOT GIVEN bằng cách hỏi: 'Bài có nói điều GÌ mâu thuẫn không?' Nếu có → FALSE. Nếu chỉ không đề cập → NOT GIVEN.",
+      "Band 7→8: Chú ý scope — câu hỏi nói 'tất cả' nhưng bài chỉ nói 'một số' = FALSE ngay.",
+      "Band 8+: Đọc qualifier và hedging language ('may', 'might', 'some') — đây thường là bẫy NOT GIVEN."
+    ]
+  },
+  "Multiple Choice": {
+    overview: "Dạng bài yêu cầu chọn 1 trong 4 đáp án (A/B/C/D). Các câu hỏi thường theo thứ tự xuất hiện trong bài, giúp locate dễ hơn.",
+    steps: [
+      { title: "Đọc câu hỏi — bỏ qua options", text: "Đọc phần stem (câu hỏi) trước, <strong>không đọc A/B/C/D</strong>. Gạch chân keyword để locate trong bài." },
+      { title: "Locate và đọc kỹ đoạn đó", text: "Tìm đoạn văn chứa thông tin, đọc toàn bộ đoạn đó. <strong>Đừng chọn đáp án chỉ vì thấy từ quen</strong>." },
+      { title: "Loại trừ", text: "So sánh từng option với bài. <strong>Loại những cái sai rõ ràng trước</strong>, rồi chọn cái còn lại khớp nhất." },
+      { title: "Kiểm tra lại", text: "Đáp án đúng thường là paraphrase của bài, không phải copy nguyên văn. Nếu một option dùng từ y chang bài → <strong>thường là bẫy</strong>." }
+    ],
+    traps: [
+      "Distractor dùng từ trong bài nhưng sai nghĩa (true words, wrong meaning).",
+      "Option nghe 'hợp lý' theo kiến thức thực tế nhưng bài không nói.",
+      "Chọn theo cảm tính vì câu đó 'đúng về mặt chung' — phải bám vào bài."
+    ],
+    bandTips: [
+      "Band 6→7: Luôn quay lại bài đọc để verify, đừng chọn từ trí nhớ.",
+      "Band 7→8: Chú ý hedging trong options — 'may contribute' vs 'is the main cause' là hai đáp án rất khác nhau.",
+      "Band 8+: Đọc tất cả 4 options trước khi chọn, kể cả khi đã thấy đáp án đúng. Đề IELTS hay có 'better answer'."
+    ]
+  },
+  "Short Answer Questions": {
+    overview: "Dạng bài yêu cầu trả lời câu hỏi bằng từ trích thẳng từ bài đọc, thường giới hạn 2-3 từ. Học sinh PHẢI dùng từ trong bài, không được paraphrase.",
+    steps: [
+      { title: "Đọc giới hạn từ cẩn thận", text: "<strong>NO MORE THAN TWO/THREE WORDS</strong> — đếm từ kỹ. 'a' và 'the' cũng tính là 1 từ." },
+      { title: "Xác định loại thông tin cần tìm", text: "Câu hỏi bắt đầu bằng gì? <strong>What = danh từ/khái niệm. How many = số. When = thời gian. Where = địa điểm</strong>." },
+      { title: "Scan bài theo từ khoá câu hỏi", text: "Locate vùng bài có chứa thông tin. Đọc kỹ 1-2 câu xung quanh keyword." },
+      { title: "Chép đúng từ bài", text: "<strong>Copy chính xác từ bài</strong>, kể cả viết hoa. Không được đổi dạng từ (sang/không sang số nhiều, v.v.)." }
+    ],
+    traps: [
+      "Vượt giới hạn từ — 'recirculated irrigation systems' là 3 từ, đúng giới hạn. Thêm 'the' vào trước = 4 từ, sai.",
+      "Paraphrase thay vì copy — dạng này BẮT BUỘC dùng từ trong bài.",
+      "Lấy sai phần: câu hỏi hỏi về tác động nhưng học sinh chép nguyên nhân."
+    ],
+    bandTips: [
+      "Band 6→7: Luyện scan — nhìn vào câu hỏi, khoanh keyword, chỉ đọc đoạn chứa keyword đó.",
+      "Band 7→8: Để ý số ít/số nhiều, verb tense trong câu hỏi để đoán loại đáp án.",
+      "Band 8+: Khi answer không rõ, đọc rộng hơn 1 đoạn trước/sau vùng locate ban đầu."
+    ]
+  },
+  "Matching Headings": {
+    overview: "Dạng bài yêu cầu ghép tiêu đề phù hợp với từng đoạn văn. Cần nắm ý chính của cả đoạn, không chỉ một câu.",
+    steps: [
+      { title: "Đọc tất cả headings trước", text: "Đọc và hiểu hết list headings. <strong>Đánh dấu keyword</strong> trong từng heading." },
+      { title: "Đọc topic sentence của mỗi đoạn", text: "Câu đầu thường là topic sentence. Đọc câu đầu + câu cuối của đoạn để nắm ý chính." },
+      { title: "Ghép ý chính — không chi tiết", text: "Heading phản ánh <strong>ý chính của cả đoạn</strong>, không phải một chi tiết nhỏ. Loại heading chỉ đề cập một phần." },
+      { title: "Dùng phương pháp loại trừ", text: "Bắt đầu từ đoạn văn dễ xác định nhất. Loại heading đã dùng khỏi danh sách." }
+    ],
+    traps: [
+      "Chọn heading chứa từ xuất hiện trong đoạn nhưng không phải ý chính.",
+      "Nhầm chi tiết ví dụ với luận điểm chính — ví dụ minh họa không nên là heading.",
+      "Headings số lẻ: có nhiều headings hơn đoạn văn — không nhất thiết dùng hết."
+    ],
+    bandTips: [
+      "Band 6→7: Sau khi chọn heading, kiểm tra lại: 'Heading này có bao quát cả đoạn không, hay chỉ 1-2 câu?'",
+      "Band 7→8: Phân biệt paragraph về 'vấn đề' vs 'giải pháp' vs 'phê bình' — heading thường dùng từ chỉ chức năng này.",
+      "Band 8+: Để ý shift trong đoạn — đoạn có thể bắt đầu bằng ý A nhưng kết thúc bằng ý B; heading phản ánh ý B (kết luận của đoạn)."
+    ]
+  },
+  "Matching Information": {
+    overview: "Dạng bài yêu cầu xác định đoạn văn (A, B, C...) chứa thông tin được mô tả. Khác Matching Headings, đây tìm thông tin cụ thể chứ không phải ý chính.",
+    steps: [
+      { title: "Đọc câu hỏi — xác định loại thông tin", text: "Mỗi câu mô tả một <strong>loại thông tin cụ thể</strong>: số liệu, ví dụ, nguyên nhân, kết quả, trích dẫn, v.v." },
+      { title: "Scan toàn bài — không đọc tuần tự", text: "<strong>Scan nhanh</strong> từng đoạn để tìm đoạn có chứa loại thông tin đó. Dùng keyword từ câu hỏi." },
+      { title: "Verify bằng cách đọc kỹ đoạn đó", text: "Khi đã locate đoạn, đọc kỹ để xác nhận thông tin khớp với câu hỏi." },
+      { title: "Chú ý: đoạn có thể dùng lại", text: "Một đoạn văn có thể là đáp án của nhiều câu hỏi khác nhau." }
+    ],
+    traps: [
+      "Locate nhầm đoạn vì keyword giống nhau nhưng thông tin khác.",
+      "Bỏ qua đoạn đầu/cuối — học sinh hay chỉ scan phần giữa.",
+      "Đọc quá chậm từng đoạn — dạng này cần scan nhanh rồi mới đọc kỹ."
+    ],
+    bandTips: [
+      "Band 6→7: Đánh số từng đoạn trước, ghi tóm tắt 3-4 từ bên cạnh mỗi đoạn khi đọc lần đầu.",
+      "Band 7→8: Nhận biết 'loại thông tin' trong câu hỏi — 'a reason why', 'an example of', 'a comparison between' để scan mục tiêu hơn.",
+      "Band 8+: Làm câu khó nhất trước — câu nào mô tả thông tin rất cụ thể (số liệu, tên riêng) thì locate nhanh nhất."
+    ]
+  },
+  "Summary Completion": {
+    overview: "Dạng bài cho một đoạn tóm tắt có chỗ trống, học sinh điền từ lấy từ bài đọc hoặc từ danh sách cho sẵn. Thường xuất hiện theo thứ tự bài đọc.",
+    steps: [
+      { title: "Đọc toàn bộ summary trước", text: "Đọc để hiểu chủ đề và <strong>đoán loại từ cần điền</strong> (danh từ, tính từ, động từ, số)." },
+      { title: "Locate trong bài", text: "Summary thường theo thứ tự bài đọc. Xác định đoạn bài tương ứng với phần summary đang xét." },
+      { title: "Điền từ bài — đúng dạng từ", text: "Nếu đề yêu cầu 'words from the passage' — <strong>copy nguyên văn</strong>. Kiểm tra số ít/nhiều, thì động từ." },
+      { title: "Đọc lại summary sau khi điền", text: "Đọc lại toàn bộ summary để kiểm tra <strong>ngữ nghĩa và ngữ pháp</strong> tổng thể có thông không." }
+    ],
+    traps: [
+      "Điền từ nghe 'đúng về nghĩa' nhưng không có trong bài.",
+      "Vượt giới hạn số từ — luôn đếm lại.",
+      "Điền paraphrase thay vì từ gốc — dạng 'words from the passage' không chấp nhận điều này."
+    ],
+    bandTips: [
+      "Band 6→7: Sau khi locate đoạn, đọc 2-3 câu trước và sau keyword để hiểu ngữ cảnh đầy đủ.",
+      "Band 7→8: Dùng gợi ý ngữ pháp — chỗ trống sau 'the' cần danh từ; sau 'is' cần tính từ/danh từ.",
+      "Band 8+: Xem summary như một mini-test về paraphrase — hiểu cách bài tóm tắt ý của passage để đoán đúng từ cần điền."
+    ]
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   TIPS PANEL
+═══════════════════════════════════════════════════════════════ */
+function openTipsPanel(qType) {
+  const panel = document.getElementById('tips-panel');
+  const title = document.getElementById('tips-panel-title');
+  const body  = document.getElementById('tips-panel-body');
+
+  // Find matching tips — try exact match, then partial
+  let data = TIPS_DATA[qType];
+  if (!data) {
+    const key = Object.keys(TIPS_DATA).find(k => qType.toLowerCase().includes(k.toLowerCase().split(' ')[0]));
+    data = key ? TIPS_DATA[key] : null;
+  }
+
+  if (!data) {
+    body.innerHTML = `<div style="color:var(--ink-muted);padding:20px;font-size:13px;">Chưa có tips cho dạng bài này.</div>`;
+  } else {
+    title.textContent = qType;
+
+    const stepsHtml = data.steps.map((s, i) => `
+      <div class="tips-item">
+        <div class="tips-item-num">${i + 1}</div>
+        <div class="tips-item-text"><strong>${s.title}:</strong> ${s.text}</div>
+      </div>`).join('');
+
+    const trapsHtml = data.traps.map(t => `
+      <div class="tips-trap">
+        <span class="tips-trap-icon">⚠️</span>
+        <span>${t}</span>
+      </div>`).join('');
+
+    const bandHtml = data.bandTips.map(b => `
+      <div class="tips-band">
+        <span class="tips-band-icon">🚀</span>
+        <span>${b}</span>
+      </div>`).join('');
+
+    body.innerHTML = `
+      <div class="tips-overview">${data.overview}</div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">📋 Quy trình làm bài</div>
+        ${stepsHtml}
+      </div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">⚠️ Bẫy thường gặp</div>
+        ${trapsHtml}
+      </div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">🚀 Tips tăng Band</div>
+        ${bandHtml}
+      </div>`;
+  }
+
+  panel.classList.add('open');
+}
+
+function closeTipsPanel() {
+  document.getElementById('tips-panel').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR NAV SWITCH (Câu hỏi ↔ Báo cáo)
+═══════════════════════════════════════════════════════════════ */
+function switchSidebarView(view) {
+  const isQ = view === 'questions';
+  const qView = document.getElementById('sidebar-view-questions');
+  const rView = document.getElementById('sidebar-view-report');
+  qView.classList.toggle('hidden', !isQ);
+  rView.classList.toggle('visible', !isQ);
+  document.getElementById('snav-questions').classList.toggle('active', isQ);
+  document.getElementById('snav-report').classList.toggle('active', !isQ);
+  if (!isQ) buildReport();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPORT BUILDER
+═══════════════════════════════════════════════════════════════ */
+// Track student answers: { qId: { studentAnswer, isCorrect } }
+const studentAnswers = {};
+
+// Call after each checkAnswer to register
+function registerStudentAnswer(qId, studentAnswer, isCorrect) {
+  studentAnswers[qId] = { studentAnswer, isCorrect };
+}
+
+function buildReport() {
+  const hint    = document.getElementById('report-hint');
+  const content = document.getElementById('report-content');
+  const totalChecked = Object.keys(studentAnswers).length;
+
+  if (totalChecked === 0) {
+    hint.style.display = 'flex';
+    content.classList.remove('visible');
+    return;
+  }
+
+  hint.style.display = 'none';
+  content.classList.add('visible');
+
+  // Group results by question type
+  const byType = {}; // { typeName: { total, wrong, items: [{id, isCorrect}] } }
+
+  for (const group of TEACHER_DATA.questions) {
+    const type = group.type;
+    if (!byType[type]) byType[type] = { total: 0, wrong: 0, items: [] };
+    for (const item of group.items) {
+      if (studentAnswers[item.id] !== undefined) {
+        byType[type].total++;
+        const correct = studentAnswers[item.id].isCorrect;
+        if (!correct) byType[type].wrong++;
+        byType[type].items.push({ id: item.id, isCorrect: correct });
+      }
+    }
+  }
+
+  // Build weakness list
+  const weakTypes = Object.entries(byType)
+    .filter(([, v]) => v.total > 0 && v.wrong > 0)
+    .sort((a, b) => (b[1].wrong / b[1].total) - (a[1].wrong / a[1].total));
+
+  let html = '';
+
+  // Summary per type
+  for (const [type, data] of Object.entries(byType)) {
+    if (data.total === 0) continue;
+    const correct = data.total - data.wrong;
+    const pct = Math.round((correct / data.total) * 100);
+    const scoreClass = pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+    const shortType = type.split(' ').slice(0, 3).join(' ');
+
+    const qRows = data.items.map(item => {
+      const icon = item.isCorrect ? '✅' : '❌';
+      const diag = item.isCorrect ? '' : getDiagnosis(item.id);
+      return `<div class="report-q-row">
+        <span class="rq-num">${item.id}</span>
+        <span class="rq-status">${icon}</span>
+        <span class="rq-diag">${diag}</span>
+      </div>`;
+    }).join('');
+
+    html += `<div class="report-group-card">
+      <div class="report-group-head">
+        <span class="report-group-name">${shortType}</span>
+        <span class="report-group-score ${scoreClass}">${correct}/${data.total} · ${pct}%</span>
+      </div>
+      <div class="report-q-list">${qRows}</div>
+    </div>`;
+  }
+
+  // Focus areas for student
+  if (weakTypes.length > 0) {
+    const focusItems = weakTypes.slice(0, 3).map(([type, data]) => {
+      const pct = Math.round(((data.total - data.wrong) / data.total) * 100);
+      const shortT = type.split(' ').slice(0,3).join(' ');
+      return `<div class="report-focus-item">
+        <div class="report-focus-dot"></div>
+        <div><strong>${shortT}</strong>: ${pct}% chính xác — cần ôn lại quy trình và bẫy thường gặp</div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="report-summary-box">
+      <div class="report-summary-title">🎯 Học sinh cần tập trung</div>
+      ${focusItems}
+    </div>`;
+  } else if (totalChecked > 0) {
+    html += `<div class="report-summary-box">
+      <div class="report-summary-title">🎉 Kết quả tốt!</div>
+      <div class="report-focus-item"><div class="report-focus-dot"></div><div>Học sinh làm tốt tất cả dạng bài đã check.</div></div>
+    </div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+function getDiagnosis(qId) {
+  // Find which question type this belongs to
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      if (item.id === qId) {
+        const type = group.type;
+        if (type.includes('YES') || type.includes('NO')) return 'Nhầm NO/NOT GIVEN';
+        if (type.includes('TRUE') || type.includes('FALSE')) return 'Nhầm FALSE/NOT GIVEN';
+        if (type.includes('Multiple')) return 'Chọn distractor';
+        if (type.includes('Short')) return 'Sai từ / vượt giới hạn';
+        if (type.includes('Heading')) return 'Nhầm ý chính';
+        if (type.includes('Matching')) return 'Locate sai đoạn';
+        if (type.includes('Summary')) return 'Sai từ / paraphrase';
+        return 'Cần xem lại';
+      }
+    }
+  }
+  return '';
+}
+</script>
+</body>
+</html>
