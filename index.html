@@ -1942,10 +1942,9 @@ function renderQuestions(passageIdx) {
             </div>`;
           }
           html += `</div>`;
-        } else if (group.type.includes('TRUE') || group.type.includes('FALSE')) {
-          /* Detect YES/NO/NG vs TRUE/FALSE/NG from key values */
-          const sampleKey = item.key.toUpperCase();
-          const isYesNo = sampleKey === 'YES' || sampleKey === 'NO';
+        } else if (group.type.includes('TRUE') || group.type.includes('FALSE') || group.type.includes('YES')) {
+          /* Detect YES/NO/NG vs TRUE/FALSE/NG from group type */
+          const isYesNo = group.type.includes('YES');
           const opts = isYesNo
             ? ['YES', 'NO', 'NOT GIVEN']
             : ['TRUE', 'FALSE', 'NOT GIVEN'];
