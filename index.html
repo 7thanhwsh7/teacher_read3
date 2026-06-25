@@ -1724,6 +1724,7 @@ const TEACHER_DATA = {
       "passageId": 1,
       "groupId": "P1G1",
       "type": "Matching Headings",
+      "dropdownOptions": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"],
       "instruction": "Choose the correct heading for each paragraph from the list of headings below. Choose the correct number, i–x, for questions 14–20.<br><br><table style='width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;'><thead><tr style='background:var(--navy);color:var(--gold);'><th style='border:1px solid #ccc;padding:6px 10px;text-align:left;' colspan='2'>List of Headings</th></tr></thead><tbody><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;width:28px;'>i</td><td style='border:1px solid #ccc;padding:5px 10px;'>Global resistance to lean manufacturing</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>ii</td><td style='border:1px solid #ccc;padding:5px 10px;'>The historical context</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>iii</td><td style='border:1px solid #ccc;padding:5px 10px;'>Procedures for controlling quality</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>iv</td><td style='border:1px solid #ccc;padding:5px 10px;'>The pros and cons of different production systems</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>v</td><td style='border:1px solid #ccc;padding:5px 10px;'>The impact on profits</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>vi</td><td style='border:1px solid #ccc;padding:5px 10px;'>Procedures for controlling supply</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>vii</td><td style='border:1px solid #ccc;padding:5px 10px;'>The origin of the term</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>viii</td><td style='border:1px solid #ccc;padding:5px 10px;'>A crucial difference in levels of quality</td></tr><tr style='background:#fff;'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>ix</td><td style='border:1px solid #ccc;padding:5px 10px;'>Working conditions</td></tr><tr style='background:var(--cream-deep);'><td style='border:1px solid #ccc;padding:5px 10px;font-weight:700;'>x</td><td style='border:1px solid #ccc;padding:5px 10px;'>Interdependent strategies for controlling expenditure</td></tr></tbody></table>",
       "items": [
         { "id": 14, "stem": "Paragraph 14", "key": "ii", "explanation": "Đoạn này tóm lược lịch sử phát triển sản xuất từ Ford đến Toyota.", "evidence": "After the First World War, car makers Henry Ford and Arthur Sloan of General Motors moved world manufacturing from centuries of craft production into the age of mass production." },
@@ -1753,6 +1754,7 @@ const TEACHER_DATA = {
       "passageId": 2,
       "groupId": "P2G1",
       "type": "Matching Information",
+      "dropdownOptions": ["A", "B", "C", "D", "E", "F"],
       "instruction": "Which paragraph contains the following information? Choose the correct letter, A-F, in boxes 27-32. NB You may use any letter more than once.",
       "items": [
         { "id": 27, "stem": "reasons why watching sport can bring emotional satisfaction", "key": "F", "explanation": "Đoạn F giải thích sự kết nối cảm xúc qua neuron gương liên kết với hạch hạnh nhân (amygdala).", "evidence": "This is because they are directly associated with the amygdala, a key area of the brain responsible for emotional processing." },
@@ -1951,6 +1953,14 @@ function renderQuestions(passageIdx) {
             <select class="teacher-select" id="teacher-input-${item.id}">
               <option value="">— Chọn đáp án —</option>
               ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
+            </select>
+          </div>`;
+        } else if (group.dropdownOptions) {
+          // Matching Headings / Matching Information — dropdown
+          html += `<div class="teacher-select-wrap">
+            <select class="teacher-select" id="teacher-input-${item.id}">
+              <option value="">— Chọn đáp án —</option>
+              ${group.dropdownOptions.map(o => `<option value="${o}">${o}</option>`).join('')}
             </select>
           </div>`;
         } else {
